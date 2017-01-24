@@ -1,5 +1,6 @@
 CC = g++
 CFLAGS = -std=c++0x
+LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lboost_system
 DEBUG_FLAGS = -g -Wall
 
 MAIN = src/webserver.cc
@@ -11,12 +12,12 @@ TEST_FLAGS = -isystem ${GTEST_DIR}/include -pthread
 
 
 all:
-	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(MAIN) $(CC_FILES) -o webserver
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(MAIN) $(CC_FILES) -o webserver $(LDFLAGS)
 
 test:
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc
+	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc $(LDFLAGS) 
 	ar -rv libgtest.a gtest-all.o
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $(CC_FILES) $(TEST_FILES) $(GTEST_DIR)/src/gtest_main.cc libgtest.a -o run_tests
+	$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $(CC_FILES) $(TEST_FILES) $(GTEST_DIR)/src/gtest_main.cc libgtest.a -o run_tests $(LDFLAGS)
 	./run_tests
 
 
