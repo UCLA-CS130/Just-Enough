@@ -1,7 +1,7 @@
 CC = g++
-CFLAGS = -std=c++0x
+CFLAGS = -std=c++11
 LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lboost_system
-DEBUG_FLAGS = -g -Wall
+DEBUG_FLAGS = -g -Wall -Werror
 
 MAIN = src/webserver.cc
 CC_FILES = $(filter-out $(MAIN), $(wildcard src/*.cc))
@@ -16,7 +16,6 @@ all:
 
 test:
 	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc $(LDFLAGS) 
-	ar -rv libgtest.a gtest-all.o
 	$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $(CC_FILES) $(TEST_FILES) $(GTEST_DIR)/src/gtest_main.cc libgtest.a -o run_tests $(LDFLAGS)
 	./run_tests
 
