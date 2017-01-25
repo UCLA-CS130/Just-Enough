@@ -8,10 +8,10 @@
 
 using boost::asio::ip::tcp;
 
-short getPort(NginxConfig* config){
+short getPort(NginxConfig* config) {
     //TODO: Find server listen port non-arbitrarily
-    string port = config.statements_[0]->statements_[0]->child_block_->statements_[0]->tokens_[1];
-    return (short) std::stoi(port);
+    std::string p = config->statements_[0]->child_block_->statements_[0]->tokens_[1];
+    return (short) std::stoi(p);
 
     //TODO:: What if port couldn't be found
 }
