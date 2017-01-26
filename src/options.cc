@@ -2,12 +2,22 @@
 
 #include "options.h"
 
-short Options::getPort(const char* file_name) {
+Options::Options(const char* file_name) {
 	NginxConfigParser parser;
-    NginxConfig config;
+	parser.Parse(file_name, &config);
+}
 
-    parser.Parse(file_name, &config);
-
-    std::string p = config.statements_[0]->child_block_->statements_[0]->tokens_[1];
-    return (short) std::stoi(p);
+short Options::getPort() {
+	for (unsigned int i =0; i < config.statements_.size();i++) {
+		if (config.statements_[i]->tokens_[0] == "server") {
+			std::shared_ptr<NginxConfigStatement> temp_config = config.statements_[i];
+			for (unsigned int j = 0; j < temp_config->child_block_->statements_.size(); j++) {
+				if(temp_config->child_block_->statements_[j]->tokens_[0] == "listen") {
+					std::string port = temp_config->child_block_->statements_[j]->tokens_[1];
+					return (short) std::stoi(port);
+				}
+			}
+		}
+	}
+    return -1;
 }
