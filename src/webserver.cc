@@ -17,8 +17,8 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        Options opt;
-        short port_num = opt.getPort(argv[1]);
+        Options opt(argv[1]);
+        short port_num = opt.getPort();
         //this can be used to check Options::getPort
         /*if(port_num == 8080) {
             std::cout << "Currently listening" << std::endl;
