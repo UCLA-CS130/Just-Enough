@@ -3,7 +3,7 @@ CFLAGS = -std=c++11
 LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lboost_system
 DEBUG_FLAGS = -g -Wall -Werror
 
-MAIN = src/webserver.cc
+MAIN = src/main.cc
 CC_FILES = $(filter-out $(MAIN), $(wildcard src/*.cc))
 TEST_FILES = $(wildcard tests/*.cc)
 
