@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "configured port: " << port_num << std::endl;
 
-    Webserver ws;
+    Webserver ws(port_num);
     ws.run();
 
     return 0;
