@@ -1,5 +1,4 @@
-http{
-	server {
-		listen 80; #this is the default port
-	}
+server {
+	listen 8080;
 }
+
