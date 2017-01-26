@@ -2,6 +2,9 @@
 
 class Options {
 	public:
-		Options() {}
-		short getPort(const char* file_name);
+		Options() {};
+		Options(const char* file_name);
+		short getPort();
+	private:
+		NginxConfig config;
 };

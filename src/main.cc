@@ -9,8 +9,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    Options opt;
-    short port_num = opt.getPort(argv[1]);
+    Options opt(argv[1]);
+    short port_num = opt.getPort();
     std::cout << "configured port: " << port_num << std::endl;
 
     Webserver ws;
