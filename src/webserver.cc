@@ -5,17 +5,10 @@
 #include "webserver.h"
 
 using boost::asio::ip::tcp;
-//HTTP/1.1 200 OK\r\n
-//Content-length: 80\r\n
-//Content-type: "text/plain"\r\n
-//\r\n
-//body goes here
-//\r\n
 
 std::string processRawRequest(std::string& reqStr) {
-    std::string response = "HTTP/1.1 200 OK \r\n";
-    //response += "Content-length:" +reqStr.length() "\r\n";
-    response += "Content-type: \"text/plain\" \r\n";
+    std::string response = "HTTP/1.1 200 OK\r\n";
+    response += "Content-type:\"text/plain\"\r\n";
     response += "\r\n"+reqStr+"\r\n";
     return response;
 }
