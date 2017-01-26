@@ -4,20 +4,12 @@
 #include <boost/asio.hpp>
 #include <boost/system/error_code.hpp>
 
-#include "config_parser.h"
+#include "options.h"
 
 using boost::asio::ip::tcp;
 
-short getPort(NginxConfig* config) {
-    //TODO: Find server listen port non-arbitrarily
-    std::string p = config->statements_[0]->child_block_->statements_[0]->tokens_[1];
-    return (short) std::stoi(p);
-
-    //TODO:: What if port couldn't be found
-}
-
 int main(int argc, char* argv[]) {
-    //std::cout << "listening on port 1234" << std::endl;
+    std::cout << "listening on port 8080" << std::endl;
 
     try {
         if (argc != 2) {
@@ -25,11 +17,13 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        NginxConfigParser parser;
-        NginxConfig config;
-
-        parser.Parse(argv[1], &config);
-        short port_num = getPort(&config);
+        Options opt;
+        short port_num = opt.getPort(argv[1]);
+        //this can be used to check Options::getPort
+        /*if(port_num == 8080) {
+            std::cout << "Currently listening" << std::endl;
+            return 0;
+        }*/
 
         boost::asio::io_service io_service;
         tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), port_num));
