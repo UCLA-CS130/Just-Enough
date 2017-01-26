@@ -4,14 +4,29 @@
 #include <boost/asio.hpp>
 #include <boost/system/error_code.hpp>
 
+#include "options.h"
+
 using boost::asio::ip::tcp;
 
-int main() {
-    std::cout << "listening on port 1234" << std::endl;
+int main(int argc, char* argv[]) {
+    std::cout << "listening on port 8080" << std::endl;
 
     try {
+        if (argc != 2) {
+            std::cerr << "Invalid number of arguments. Usage: webserver <config_file>\n";
+            return 1;
+        }
+
+        Options opt;
+        short port_num = opt.getPort(argv[1]);
+        //this can be used to check Options::getPort
+        /*if(port_num == 8080) {
+            std::cout << "Currently listening" << std::endl;
+            return 0;
+        }*/
+
         boost::asio::io_service io_service;
-        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 1234));
+        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), port_num));
 
         while (true) {
             tcp::socket socket(io_service);
