@@ -42,8 +42,7 @@ void processConnection(tcp::socket& socket) {
 void Webserver::run() {
     try {
         boost::asio::io_service io_service;
-        short port_num = 1234; // TODO: read from opt
-        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), port_num));
+        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), port_));
 
         while (true) {
             tcp::socket socket(io_service_);
@@ -56,3 +55,6 @@ void Webserver::run() {
     }
 }
 
+Webserver::Webserver(short port)
+: port_(port)
+{ }

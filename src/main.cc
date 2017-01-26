@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
     short port_num = opt.getPort(argv[1]);
     std::cout << "configured port: " << port_num << std::endl;
 
-    Webserver ws;
+    Webserver ws(port_num);
     ws.run();
 
     return 0;
