@@ -29,7 +29,7 @@ def die(error):
     """ test apparatus failed entirely...
         print error and exit
     """
-    print("\033[31m%s\033[0m" % error)
+    print("%s%s" % (RED_ESCAPE, error, CLR_ESACPE))
     sys.exit(1)
 
 def buildBinary():
