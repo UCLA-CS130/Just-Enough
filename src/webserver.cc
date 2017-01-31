@@ -8,7 +8,7 @@ using boost::asio::ip::tcp;
 
 std::string processRawRequest(std::string& reqStr) {
     std::string response = "HTTP/1.1 200 OK\r\n";
-    response += "Content-type:\"text/plain\"\r\n";
+    response += "Content-type: text/plain\r\n";
     response += "\r\n"+reqStr+"\r\n";
     return response;
 }
