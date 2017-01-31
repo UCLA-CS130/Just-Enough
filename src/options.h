@@ -3,7 +3,7 @@
 class Options {
 	public:
 		Options(const char* file_name);
-		short getPort();
+		unsigned short getPort();
 	private:
 		NginxConfig config;
 };
