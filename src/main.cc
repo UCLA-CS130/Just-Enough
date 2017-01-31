@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
     }
 
     Options opt(argv[1]);
-    short port_num = opt.getPort();
+    unsigned short port_num = opt.getPort();
     if (port_num == -1) {
         std::cerr << "Was not able to get port number from <config_file>.\n";
         return 1;
