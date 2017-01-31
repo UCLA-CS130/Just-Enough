@@ -19,4 +19,6 @@ test:
 	$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $(CC_FILES) $(TEST_FILES) $(GTEST_DIR)/src/gtest_main.cc libgtest.a -o run_tests $(LDFLAGS)
 	./run_tests
 
+integration:
+	tests/integration.py
 
