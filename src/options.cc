@@ -1,12 +1,13 @@
 #include <string>
+#include <fstream>
 
 #include "options.h"
 
-bool Options::loadOptionsFromFile(const char* filename) {
-	//TODO: Does parse return error for bad filename
+bool Options::loadOptionsFromStream(std::istream* config_file) {
+
 	NginxConfigParser parser;
 	NginxConfig config;
-	if(parser.Parse(filename, &config) == false) {
+	if(parser.Parse(config_file, &config) == false) {
 		return false;
 	}
 
@@ -35,4 +36,18 @@ bool Options::loadOptionsFromFile(const char* filename) {
 		}
 	}
 	return true;
+}
+
+bool Options::loadOptionsFromFile(const char* filename) {
+	//TODO: Does parse return error for bad filename
+	std::ifstream config_file;
+	config_file.open(filename);
+  	if (!config_file.good()) {
+    	std::cerr << "Failed to open config file.\n";
+    	return false;
+	}
+
+	bool val = loadOptionsFromStream(dynamic_cast<std::istream*>(&config_file));
+	config_file.close();
+	return val;
 }
