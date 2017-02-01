@@ -13,7 +13,7 @@ std::string processRawRequest(std::string& reqStr) {
     return response;
 }
 
-void processConnection(tcp::socket& socket) {
+static void processConnection(tcp::socket& socket) {
     std::cout << "Accepted connection from "
         << socket.remote_endpoint().address().to_string()
         << ":" << socket.remote_endpoint().port()

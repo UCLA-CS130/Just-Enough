@@ -13,7 +13,8 @@ CC_FILES = $(filter-out $(MAIN), $(wildcard src/*.cc))
 TEST_FILES = $(wildcard tests/*.cc)
 
 GTEST_DIR = googletest/googletest
-TEST_FLAGS = -isystem ${GTEST_DIR}/include -pthread
+GMOCK_DIR = googletest/googlemock
+TEST_FLAGS = -isystem $(GTEST_DIR)/include -isystem $(GMOCK_DIR)/include -pthread
 
 
 all:
