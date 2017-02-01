@@ -2,7 +2,7 @@
 
 #include "options.h"
 
-void Options::loadOptionsFromFile(const char* filename) {
+bool Options::loadOptionsFromFile(const char* filename) {
 	NginxConfigParser parser;
 	NginxConfig config;
 	parser.Parse(filename, &config);
@@ -15,14 +15,15 @@ void Options::loadOptionsFromFile(const char* filename) {
 			for (unsigned int j = 0; j < temp_config->child_block_->statements_.size(); j++) {
 				if(temp_config->child_block_->statements_[j]->tokens_[0] == "listen") {
 					std::string port = temp_config->child_block_->statements_[j]->tokens_[1];
+					if((unsigned int) std::stoi(port) > 65535 || (unsigned int) std::stoi(port) < 1024) {
+						std::cerr << "Invalid port number.\n";
+        				return false;
+					}
+					//TODO: check if port has already been set
 					this->port = (unsigned short) std::stoi(port);
 				}
 			}
 		}
 	}
+	return true;
 }
-
-unsigned short Options::getPort() {
-	//TODO check port here
-	return this->port;
-};

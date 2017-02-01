@@ -10,8 +10,11 @@ int main(int argc, char* argv[]) {
     }
 
     Options opt;
-    opt.loadOptionsFromFile(argv[1]);
-    unsigned short port_num = opt.getPort();
+    if(opt.loadOptionsFromFile(argv[1]) == false) {
+        std::cerr << "Did not parse config file.\n";
+        return 1;
+    }
+    unsigned short port_num = opt.port;
     std::cout << "configured port: " << port_num << std::endl;
 
     Webserver ws(port_num);
