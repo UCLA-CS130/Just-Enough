@@ -3,14 +3,19 @@
 #include "options.h"
 
 bool Options::loadOptionsFromFile(const char* filename) {
+	//TODO: Does parse return error for bad filename
 	NginxConfigParser parser;
 	NginxConfig config;
-	parser.Parse(filename, &config);
+	if(parser.Parse(filename, &config) == false) {
+		return false;
+	}
+
+	bool issetPort = false;
 
 	for (unsigned int i =0; i < config.statements_.size();i++) {
 
 		// Sets the port
-		if (config.statements_[i]->tokens_[0] == "server") {
+		if (!issetPort && config.statements_[i]->tokens_[0] == "server") {
 			std::shared_ptr<NginxConfigStatement> temp_config = config.statements_[i];
 			for (unsigned int j = 0; j < temp_config->child_block_->statements_.size(); j++) {
 				if(temp_config->child_block_->statements_[j]->tokens_[0] == "listen") {
@@ -19,8 +24,12 @@ bool Options::loadOptionsFromFile(const char* filename) {
 						std::cerr << "Invalid port number.\n";
         				return false;
 					}
-					//TODO: check if port has already been set
+					if(issetPort) {
+						std::cerr << "Multiple ports in config file.\n";
+						return false;
+					}
 					this->port = (unsigned short) std::stoi(port);
+					issetPort = true;
 				}
 			}
 		}
