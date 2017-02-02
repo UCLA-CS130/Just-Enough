@@ -248,6 +248,7 @@ def runTests():
         exit(-1)
 
 if __name__ == '__main__':
-    buildBinary()
+    if not '--no-build' in sys.argv:
+        buildBinary()
     runTests()
 

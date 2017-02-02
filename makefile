@@ -31,8 +31,11 @@ integration:
 	tests/integration.py
 
 coverage:
-	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(MAIN) $(CC_FILES) -o webserver $(LDFLAGS) $(COVFLAGS)
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc $(LDFLAGS)
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $(CC_FILES) $(TEST_FILES) $(GTEST_DIR)/src/gtest_main.cc libgtest.a -o run_tests $(LDFLAGS) $(COVFLAGS)
+	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc $(LDFLAGS)
+	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $(GMOCK_DIR)/src/gmock-all.cc $(LDFLAGS)
+	ar -rv libgmock.a gtest-all.o gmock-all.o
+	$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $(CC_FILES) $(TEST_FILES) $(GTEST_DIR)/src/gtest_main.cc libgmock.a -o run_tests $(LDFLAGS) $(COVFLAGS)
 	./run_tests
 	$(COVCC) $(COVRFLAGS) -s src $(notdir $(CC_FILES))
+
+test-all: test integration
