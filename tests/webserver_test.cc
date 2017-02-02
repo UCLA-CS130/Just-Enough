@@ -6,16 +6,32 @@
 using ::testing::HasSubstr;
 using ::testing::_;
 using ::testing::Return;
-using ::testing::Invoke;
+using ::testing::StrEq;
+using ::testing::MatchesRegex;
 using boost::asio::ip::tcp;
 
-class MockWebserver : public Webserver {
+class MockWebserverRun : public Webserver {
     public:
-        MOCK_METHOD1(processRawRequest, std::string(std::string));
         MOCK_METHOD2(acceptConnection, bool(tcp::acceptor& acceptor, tcp::socket& sock));
         MOCK_METHOD1(processConnection, void(tcp::socket& sock));
 
-        MockWebserver(unsigned short port)
+        MockWebserverRun(unsigned short port)
+            : Webserver(port)
+        { }
+};
+
+class MockWebserverProcessConnection : public Webserver {
+    public:
+        MOCK_METHOD1(processRawRequest, std::string(std::string&));
+        MOCK_METHOD4(readStrUntil, std::string(
+                boost::asio::ip::tcp::socket& socket,
+                boost::asio::streambuf& buf,
+                const char* termChar,
+                boost::system::error_code& err));
+        MOCK_METHOD1(logConnectionDetails, void(tcp::socket& socket));
+        MOCK_METHOD2(writeResponseString, void(boost::asio::ip::tcp::socket& socket, const std::string& s));
+
+        MockWebserverProcessConnection(unsigned short port)
             : Webserver(port)
         { }
 };
@@ -42,7 +58,7 @@ TEST(WebserverTest, processRawRequest) {
 
 
 TEST(WebserverTest, acceptConnections) {
-    MockWebserver webserver(8080);
+    MockWebserverRun webserver(8080);
 
     EXPECT_CALL(webserver, acceptConnection(_, _))
         .Times(3)
@@ -54,5 +70,32 @@ TEST(WebserverTest, acceptConnections) {
         .Times(2); // for two accepted connections
 
     webserver.run();
+}
+
+TEST(WebserverTest, processConnectionTest) {
+    MockWebserverProcessConnection webserver(8080);
+
+    EXPECT_CALL(webserver, logConnectionDetails(_)).Times(1);
+
+    std::string s = "0123456789\r\n";
+    EXPECT_CALL(webserver, readStrUntil(_, _, StrEq("\r\n"), _))
+        .WillOnce(Return(s))
+        .WillOnce(Return(s))
+        .WillOnce(Return(s))
+        .WillOnce(Return(s))
+        .WillOnce(Return(std::string("\r\n")))
+        ;
+
+    EXPECT_CALL(webserver, processRawRequest(
+                _
+                //MatchesRegex("^(0123456789\\r\\n){4}\\r\\n$")
+                )).Times(1);
+
+    EXPECT_CALL(webserver, writeResponseString(_, _)).Times(1);
+
+
+    boost::asio::io_service io_service;
+    boost::asio::ip::tcp::socket socket(io_service);
+    webserver.processConnection(socket);
 }
 

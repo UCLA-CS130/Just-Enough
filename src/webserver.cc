@@ -13,32 +13,49 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
     return response;
 }
 
-void Webserver::processConnection(tcp::socket& socket) {
+inline std::string Webserver::readStrUntil(
+        tcp::socket& socket,
+        boost::asio::streambuf& buf,
+        const char* termChar,
+        boost::system::error_code& err)
+{
+    size_t bytes_read = read_until(socket, buf, termChar, err);
+    std::istream input(&buf);
+    std::string line(bytes_read, ' ');
+    input.read(&line[0], bytes_read);
+
+    return line;
+}
+
+inline void Webserver::logConnectionDetails(tcp::socket& socket) {
     std::cout << "Accepted connection from "
         << socket.remote_endpoint().address().to_string()
         << ":" << socket.remote_endpoint().port()
         << std::endl;
+}
+
+inline void Webserver::writeResponseString(tcp::socket& socket, const std::string& str) {
+    boost::system::error_code ignored_error;
+    boost::asio::write(socket, boost::asio::buffer(str), ignored_error);
+}
+
+void Webserver::processConnection(tcp::socket& socket) {
+    logConnectionDetails(socket);
 
     boost::asio::streambuf buf;
     std::string req;
     while (true) {
         boost::system::error_code err;
-        size_t bytes_read = read_until(socket, buf, "\r\n", err);
-
-        std::istream input(&buf);
-        std::string line(bytes_read, ' ');
-        input.read(&line[0], bytes_read);
+        std::string line = readStrUntil(socket, buf, "\r\n", err);
         req += line;
 
         if (line.size() <= 2) {
             break;
         }
-
     }
     std::string response = processRawRequest(req);
 
-    boost::system::error_code ignored_error;
-    boost::asio::write(socket, boost::asio::buffer(response), ignored_error);
+    writeResponseString(socket, response);
 }
 
 bool Webserver::acceptConnection(tcp::acceptor& acceptor, tcp::socket& socket) {
