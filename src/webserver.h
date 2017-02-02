@@ -9,3 +9,5 @@ class Webserver {
         boost::asio::io_service io_service_;
         short port_;
 };
+
+std::string processRawRequest(std::string& reqStr);
