@@ -2,12 +2,15 @@
 
 class Webserver {
     public:
-        Webserver(short port);
-        void run();
+        Webserver(unsigned short port);
+        virtual void run();
+
+        virtual bool acceptConnection(boost::asio::ip::tcp::acceptor& acceptor, boost::asio::ip::tcp::socket& socket);
+        virtual void processConnection(boost::asio::ip::tcp::socket& socket);
+        virtual std::string processRawRequest(std::string& reqStr);
 
     private:
         boost::asio::io_service io_service_;
-        short port_;
+        unsigned short port_;
 };
 
-std::string processRawRequest(std::string& reqStr);

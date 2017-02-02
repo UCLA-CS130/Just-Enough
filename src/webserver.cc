@@ -6,14 +6,14 @@
 
 using boost::asio::ip::tcp;
 
-std::string processRawRequest(std::string& reqStr) {
+std::string Webserver::processRawRequest(std::string& reqStr) {
     std::string response = "HTTP/1.1 200 OK\r\n";
     response += "Content-type: text/plain\r\n";
     response += "\r\n"+reqStr+"\r\n";
     return response;
 }
 
-static void processConnection(tcp::socket& socket) {
+void Webserver::processConnection(tcp::socket& socket) {
     std::cout << "Accepted connection from "
         << socket.remote_endpoint().address().to_string()
         << ":" << socket.remote_endpoint().port()
@@ -41,6 +41,16 @@ static void processConnection(tcp::socket& socket) {
     boost::asio::write(socket, boost::asio::buffer(response), ignored_error);
 }
 
+bool Webserver::acceptConnection(tcp::acceptor& acceptor, tcp::socket& socket) {
+    try {
+        acceptor.accept(socket);
+    } catch (boost::system::system_error& err) {
+        std::cerr << err.what() << std::endl;
+        return false;
+    }
+    return true;
+}
+
 void Webserver::run() {
     try {
         boost::asio::io_service io_service;
@@ -48,7 +58,10 @@ void Webserver::run() {
 
         while (true) {
             tcp::socket socket(io_service_);
-            acceptor.accept(socket);
+
+            if ( !  acceptConnection(acceptor, socket)) {
+                return;
+            }
 
             processConnection(socket);
         }
@@ -57,6 +70,6 @@ void Webserver::run() {
     }
 }
 
-Webserver::Webserver(short port)
+Webserver::Webserver(unsigned short port)
 : port_(port)
 { }
