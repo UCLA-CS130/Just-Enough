@@ -1,9 +1,8 @@
 #include "config_parser.h"
 
-class Options {
-	public:
-		Options(const char* file_name);
-		unsigned short getPort();
-	private:
-		NginxConfig config;
+struct Options {
+	unsigned short port;
+	bool loadOptionsFromStream(std::istream* config_file);
+	bool loadOptionsFromFile(const char* filename);
 };
+
