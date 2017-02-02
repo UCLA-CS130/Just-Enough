@@ -83,16 +83,11 @@ TEST(WebserverTest, processConnectionTest) {
         .WillOnce(Return(s))
         .WillOnce(Return(s))
         .WillOnce(Return(s))
-        .WillOnce(Return(std::string("\r\n")))
-        ;
+        .WillOnce(Return(std::string("\r\n")));
 
-    EXPECT_CALL(webserver, processRawRequest(
-                _
-                //MatchesRegex("^(0123456789\\r\\n){4}\\r\\n$")
-                )).Times(1);
+    EXPECT_CALL(webserver, processRawRequest(_)).Times(1);
 
     EXPECT_CALL(webserver, writeResponseString(_, _)).Times(1);
-
 
     boost::asio::io_service io_service;
     boost::asio::ip::tcp::socket socket(io_service);
