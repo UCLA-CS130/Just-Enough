@@ -13,15 +13,18 @@ CC_FILES = $(filter-out $(MAIN), $(wildcard src/*.cc))
 TEST_FILES = $(wildcard tests/*.cc)
 
 GTEST_DIR = googletest/googletest
-TEST_FLAGS = -isystem ${GTEST_DIR}/include -pthread
+GMOCK_DIR = googletest/googlemock
+TEST_FLAGS = -isystem $(GTEST_DIR)/include -isystem $(GMOCK_DIR)/include -pthread
 
 
 all:
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(MAIN) $(CC_FILES) -o webserver $(LDFLAGS)
 
 test:
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc $(LDFLAGS)
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $(CC_FILES) $(TEST_FILES) $(GTEST_DIR)/src/gtest_main.cc libgtest.a -o run_tests $(LDFLAGS)
+	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc $(LDFLAGS)
+	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $(GMOCK_DIR)/src/gmock-all.cc $(LDFLAGS)
+	ar -rv libgmock.a gtest-all.o gmock-all.o
+	$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $(CC_FILES) $(TEST_FILES) $(GTEST_DIR)/src/gtest_main.cc libgmock.a -o run_tests $(LDFLAGS)
 	./run_tests
 
 integration:
