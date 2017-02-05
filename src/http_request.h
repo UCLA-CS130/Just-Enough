@@ -34,10 +34,24 @@ class HTTPRequest {
         // you should not use *any* other method
         HTTPRequestError loadFromRawRequest(const std::string& reqStr);
 
+        HTTPVerb getVerb() {
+            return verb_;
+        }
+
+        std::string getPath() {
+            return path_;
+        }
+
+        std::string getHeader(const std::string& key) {
+            auto found = headers_.find(key);
+            if (found == headers_.end()) {
+                return "";
+            }
+            return found->second;
+        }
+
     protected:
         HTTPVerb verb_;
-        std::string path_;
-        // TODO: split path into path + query + fragment
-        std::string host_;
+        std::string path_; // TODO: split path into path + query + fragment
         std::unordered_map<std::string, std::string> headers_;
 };

@@ -1,4 +1,5 @@
 #include "http_request.h"
+#include "utils.h"
 #include <sstream>
 #include <iostream>
 #include <vector>
@@ -6,35 +7,12 @@
 using std::string;
 using std::vector;
 
-vector<string> split(const string& line, char delim) {
-    vector<string> v;
-    std::stringstream ss;
-    ss.str(line);
-    string next;
-    while (std::getline(ss, next, delim)) {
-        v.push_back(next);
-    }
-    return v;
-}
-
-// Note: consumes "\r\n" before returning
-string getLine(std::stringstream& ss) {
-    string line;
-    if (std::getline(ss, line, '\n')) {
-        if (line[line.size()-1] == '\r') {
-            line.resize(line.size() - 1);
-        }
-        return line;
-    }
-    return "";
-}
-
 HTTPRequestError HTTPRequest::loadFromRawRequest(const string& reqStr) {
     std::stringstream reqSS(reqStr);
 
-    string head = getLine(reqSS);
+    string head = getCRLFLine(reqSS);
     vector<string> headTokens = split(head, ' ');
-    if (headTokens.size() < 3) { // VERB PATH HTTP/VERSION
+    if (headTokens.size() != 3) { // VERB PATH HTTP/VERSION
         return HTTPRequestError_Malformed;
     }
     if (headTokens[0] == "GET") {
@@ -57,7 +35,7 @@ HTTPRequestError HTTPRequest::loadFromRawRequest(const string& reqStr) {
     }
 
     while (true) {
-        string line = getLine(reqSS);
+        string line = getCRLFLine(reqSS);
         if (line == "") break;
 
         size_t delimPos = line.find(':');
