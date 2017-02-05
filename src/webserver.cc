@@ -1,5 +1,6 @@
 #include <string>
 #include <sstream>
+#include <iostream>
 #include <boost/system/error_code.hpp>
 
 #include "webserver.h"
