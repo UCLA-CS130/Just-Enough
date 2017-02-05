@@ -3,11 +3,18 @@
 #include <iostream>
 #include <boost/system/error_code.hpp>
 
+#include "http_request.h"
 #include "webserver.h"
 
 using boost::asio::ip::tcp;
 
 std::string Webserver::processRawRequest(std::string& reqStr) {
+    HTTPRequest req;
+    HTTPRequestError err = req.loadFromRawRequest(reqStr);
+    if (err) {
+        std::cout << "Error processing request" << std::endl;
+    }
+
     std::string response = "HTTP/1.1 200 OK\r\n";
     response += "Content-type: text/plain\r\n";
     response += "\r\n"+reqStr+"\r\n";
