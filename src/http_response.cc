@@ -36,10 +36,6 @@ void HTTPResponse::setErrorFromHTTPRequestError(HTTPRequestError err) {
             return setError(HTTPResponseCode_400_BadRequest);
         case HTTPRequestError_BadVersion:
             return setError(HTTPResponseCode_505_HTTPVersionNotSupported);
-        case HTTPRequestError_404_NotFound:
-            return setError(HTTPResponseCode_404_NotFound);
-        case HTTPRequestError_500_InternalError:
-            return setError(HTTPResponseCode_500_InternalServerError);
     }
 }
 

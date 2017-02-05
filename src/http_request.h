@@ -24,9 +24,6 @@ enum HTTPRequestError {
     HTTPRequestError_Malformed,
     HTTPRequestError_BadVerb,
     HTTPRequestError_BadVersion,
-
-    HTTPRequestError_404_NotFound,
-    HTTPRequestError_500_InternalError,
 };
 
 class HTTPRequest {
