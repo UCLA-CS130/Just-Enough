@@ -1,6 +1,15 @@
 CC = g++
 CFLAGS = -std=c++11
-LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lboost_system
+UNAME := $(shell uname)
+
+LDFLAGS =
+ifeq ($(UNAME), Linux)
+	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -lboost_system
+endif
+ifeq ($(UNAME), Darwin) # macOS
+	LDFLAGS += -L/usr/local/include -lboost_system
+endif
+
 DEBUG_FLAGS = -g -Wall -Werror
 
 COVCC = gcov
@@ -39,3 +48,15 @@ coverage:
 	$(COVCC) $(COVRFLAGS) -s src $(notdir $(CC_FILES))
 
 test-all: test integration
+
+clean:
+	-rm *.o
+	-rm *.a
+	-rm *.gcno
+	-rm *.gcov
+	-rm *.gcda
+	-rm -rf *.dSYM
+	-rm webserver
+	-rm run_tests
+
+
