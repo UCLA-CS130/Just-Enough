@@ -23,11 +23,14 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
 
 	for (unsigned int i =0; i < config.statements_.size();i++) {
 
-		// Sets the port
 		if (!issetPort && config.statements_[i]->tokens_[COM] == "server") {
 			std::shared_ptr<NginxConfigStatement> temp_config = config.statements_[i];
 			for (unsigned int j = 0; j < temp_config->child_block_->statements_.size(); j++) {
 				if(temp_config->child_block_->statements_[j]->tokens_[COM] == "listen") {
+					if(temp_config->child_block_->statements_[j]->tokens_.size() != 2) {
+						std::cerr << "Incorrect number of tokens. (For port)\n";
+						return false;
+					}
 					std::string port = temp_config->child_block_->statements_[j]->tokens_[ANS];
 					if((unsigned int) std::stoi(port) > MAX_PORT || (unsigned int) std::stoi(port) < MIN_PORT) {
 						std::cerr << "Invalid port number.\n";
