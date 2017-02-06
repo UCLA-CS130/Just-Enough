@@ -4,21 +4,24 @@
 #include <boost/system/error_code.hpp>
 
 #include "http_request.h"
+#include "http_response.h"
 #include "webserver.h"
 
 using boost::asio::ip::tcp;
 
 std::string Webserver::processRawRequest(std::string& reqStr) {
     HTTPRequest req;
+    HTTPResponse resp;
+
     HTTPRequestError err = req.loadFromRawRequest(reqStr);
     if (err) {
         std::cout << "Error processing request" << std::endl;
+        resp.setErrorFromHTTPRequestError(err);
+        return resp.makeResponseString();
     }
 
-    std::string response = "HTTP/1.1 200 OK\r\n";
-    response += "Content-type: text/plain\r\n";
-    response += "\r\n"+reqStr+"\r\n";
-    return response;
+    resp.okaySetContent(reqStr, "text/plain");
+    return resp.makeResponseString();
 }
 
 inline std::string Webserver::readStrUntil(

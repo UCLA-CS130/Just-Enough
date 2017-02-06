@@ -50,7 +50,7 @@ TEST(WebserverTest, processRawRequest) {
     std::string resp = ws.processRawRequest(req);
 
     EXPECT_THAT(resp, HasSubstr("HTTP/1.1 200 OK\r\n"));
-    EXPECT_THAT(resp, HasSubstr("Content-type: text/plain\r\n"));
+    EXPECT_THAT(resp, HasSubstr("Content-Type: text/plain\r\n"));
 
     // For now, we're expecting it to echo the request
     EXPECT_THAT(resp, HasSubstr(req));

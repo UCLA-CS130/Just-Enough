@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <unordered_map>
 
@@ -23,9 +24,6 @@ enum HTTPRequestError {
     HTTPRequestError_Malformed,
     HTTPRequestError_BadVerb,
     HTTPRequestError_BadVersion,
-
-    HTTPRequestError_404_NotFound,
-    HTTPRequestError_500_InternalError,
 };
 
 class HTTPRequest {
