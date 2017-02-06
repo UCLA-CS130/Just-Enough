@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "config_parser.h"
 #include <sstream>
+
+using ::testing::HasSubstr;
 
 TEST(NginxConfigParserTest, SimpleConfig) {
   NginxConfigParser parser;
@@ -9,6 +12,15 @@ TEST(NginxConfigParserTest, SimpleConfig) {
   bool success = parser.Parse("example_config", &out_config);
 
   EXPECT_TRUE(success);
+}
+
+TEST(NginxConfigParserTest, NonexistantConfig) {
+  NginxConfigParser parser;
+  NginxConfig out_config;
+
+  bool success = parser.Parse("ThisFileDoesNotExist.config", &out_config);
+
+  EXPECT_FALSE(success);
 }
 
 class NginxConfigParserStringTest : public ::testing::Test {
@@ -183,6 +195,70 @@ TEST_F(NginxConfigParserStringTest, DoubleQuotesSpecialChars) {
 
 }
 
+TEST_F(NginxConfigParserStringTest, SingleQuote) {
+  EXPECT_TRUE(parseString("foo = '\"';"));
+
+  // one statement
+  ASSERT_EQ(config_.statements_.size(), 1);
+  // three tokens
+  ASSERT_EQ(config_.statements_[0]->tokens_.size(), 3);
+
+  EXPECT_EQ(config_.statements_[0]->tokens_[0], "foo");
+  EXPECT_EQ(config_.statements_[0]->tokens_[1], "=");
+  EXPECT_EQ(config_.statements_[0]->tokens_[2], "'\"'");
+}
+
 TEST_F(NginxConfigParserStringTest, InvalidDoubleQuotes) {
   EXPECT_FALSE(parseString("foo = test\"hello;"));
+}
+
+TEST_F(NginxConfigParserStringTest, EmptyConfig) {
+  EXPECT_FALSE(parseString(""));
+}
+
+TEST_F(NginxConfigParserStringTest, BadStatement) {
+  EXPECT_FALSE(parseString(";"));
+}
+
+TEST_F(NginxConfigParserStringTest, BadStartBlock) {
+  EXPECT_FALSE(parseString("{"));
+}
+
+TEST_F(NginxConfigParserStringTest, ToString_basic) {
+    std::string inputStr = "port 8080;";
+    ASSERT_TRUE(parseString(inputStr));
+
+    std::string s = config_.ToString(0);
+    EXPECT_THAT(s, HasSubstr(inputStr));
+}
+
+TEST_F(NginxConfigParserStringTest, ToString_block) {
+    std::string inputStr = (
+            "foo {\n"
+            "    bar = baz;\n"
+            "}\n"
+            ) ;
+    ASSERT_TRUE(parseString(inputStr));
+
+    std::string s = config_.ToString(0);
+    EXPECT_THAT(s, HasSubstr("bar = baz;"));
+    EXPECT_THAT(s, HasSubstr("foo {"));
+    EXPECT_THAT(s, HasSubstr("}"));
+}
+
+TEST_F(NginxConfigParserStringTest, ToString_block_nested) {
+    std::string inputStr = (
+            "foo {\n"
+            "    bar {\n"
+            "        baz = blom;\n"
+            "    }\n"
+            "}\n"
+            ) ;
+    ASSERT_TRUE(parseString(inputStr));
+
+    std::string s = config_.ToString(0);
+    EXPECT_THAT(s, HasSubstr("baz = blom;"));
+    EXPECT_THAT(s, HasSubstr("foo {"));
+    EXPECT_THAT(s, HasSubstr("bar {"));
+    EXPECT_THAT(s, HasSubstr("}"));
 }
