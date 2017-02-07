@@ -82,7 +82,7 @@ bool Webserver::acceptConnection(tcp::acceptor& acceptor, tcp::socket& socket) {
 void Webserver::run() {
     try {
         boost::asio::io_service io_service;
-        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), port_));
+        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), opt_->port));
 
         while (true) {
             tcp::socket socket(io_service_);
@@ -98,6 +98,6 @@ void Webserver::run() {
     }
 }
 
-Webserver::Webserver(unsigned short port)
-: port_(port)
+Webserver::Webserver(Options* opt)
+: opt_(opt)
 { }

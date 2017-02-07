@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     unsigned short port_num = opt.port;
     std::cout << "configured port: " << port_num << std::endl;
 
-    Webserver ws(port_num);
+    Webserver ws(&opt);
     ws.run();
 
     return 0;
