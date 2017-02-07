@@ -54,6 +54,7 @@ HTTPRequestError HTTPRequest::loadFromRawRequest(const string& reqStr) {
         headers_[headerKey] = headerValue;
     }
 
+    raw_request_ = reqStr;
 
     return HTTPRequestError_None;
 }

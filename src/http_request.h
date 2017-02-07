@@ -32,15 +32,19 @@ class HTTPRequest {
         // you should not use *any* other method
         HTTPRequestError loadFromRawRequest(const std::string& reqStr);
 
-        HTTPVerb getVerb() {
+        HTTPVerb getVerb() const {
             return verb_;
         }
 
-        std::string getPath() {
+        std::string getPath() const {
             return path_;
         }
 
-        std::string getHeader(const std::string& key) {
+        std::string getRawRequest() const {
+            return raw_request_;
+        }
+
+        std::string getHeader(const std::string& key) const {
             auto found = headers_.find(key);
             if (found == headers_.end()) {
                 return "";
@@ -49,6 +53,7 @@ class HTTPRequest {
         }
 
     protected:
+        std::string raw_request_;
         HTTPVerb verb_;
         std::string path_; // TODO: split path into path + query + fragment
         std::unordered_map<std::string, std::string> headers_;
