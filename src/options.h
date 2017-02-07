@@ -10,6 +10,6 @@ struct Options {
 	bool addModule(std::shared_ptr<NginxConfigStatement> module_config);
 	bool loadOptionsFromStream(std::istream* config_file);
 	bool loadOptionsFromFile(const char* filename);
-	//~Options()
+	~Options();
 };
 

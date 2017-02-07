@@ -92,3 +92,10 @@ bool Options::loadOptionsFromFile(const char* filename) {
 	config_file.close();
 	return val;
 }
+
+Options::~Options() {
+	std::vector<Module*>::iterator it;
+	for (it = modules.begin(); it != modules.end();) {
+		delete *it;
+	}
+}
