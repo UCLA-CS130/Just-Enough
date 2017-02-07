@@ -7,6 +7,18 @@
 using std::map;
 using std::string;
 
+TEST(ModuleTest, createModuleDestructor) {
+    auto paramMap = std::make_shared<map<string, string>>(
+            std::initializer_list<map<string, string>::value_type>{
+            {"type", "echo"},
+            {"path", "/foo"},
+            });
+
+    Module* mod = createModuleFromParameters(paramMap);
+    ASSERT_NE(mod, nullptr);
+    delete mod;
+}
+
 TEST(ModuleTest, createModule_badType) {
     auto paramMap = std::make_shared<map<string, string>>(
             std::initializer_list<map<string, string>::value_type>{

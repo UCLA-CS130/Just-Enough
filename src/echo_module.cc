@@ -9,5 +9,6 @@ Module* EchoModule::createFromParameters(std::shared_ptr<std::map<std::string, s
 }
 
 bool EchoModule::handleRequest(const HTTPRequest& req, HTTPResponse* resp) {
-    return false; // TODO
+    resp->okaySetContent(req.getRawRequest(), HTTPContentType_Plain);
+    return true;
 }

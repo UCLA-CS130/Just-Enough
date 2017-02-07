@@ -16,7 +16,7 @@ TEST(ModuleTest, createEchoModule) {
             {"path", "/foo"},
             });
 
-    Module* mod = createModuleFromParameters(paramMap);
+    std::unique_ptr<Module> mod(createModuleFromParameters(paramMap));
     ASSERT_NE(mod, nullptr);
 }
 
@@ -27,27 +27,27 @@ TEST(EchoModuleTest, createEchoModule) {
             {"path", "/foo"},
             });
 
-    Module* mod = EchoModule::createFromParameters(paramMap);
+    std::unique_ptr<Module> mod(EchoModule::createFromParameters(paramMap));
     ASSERT_NE(mod, nullptr);
 }
 
 
 class EchoModuleTester : public ::testing::Test {
     protected:
-        virtual Module* makeTestEchoModule() {
+        virtual std::unique_ptr<Module> makeTestEchoModule() {
             auto paramMap = std::make_shared<map<string, string>>(
                     std::initializer_list<map<string, string>::value_type>{
                     {"type", "echo"},
                     {"path", "/foo"},
                     });
 
-            Module* mod = EchoModule::createFromParameters(paramMap);
+            std::unique_ptr<Module> mod(EchoModule::createFromParameters(paramMap));
             return mod;
         }
 };
 
 TEST_F(EchoModuleTester, handleRequest) {
-    Module* mod = makeTestEchoModule();
+    auto mod = makeTestEchoModule();
 
     std::string reqStr = (
             "GET / HTTP/1.1\r\n"
