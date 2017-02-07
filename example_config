@@ -1,4 +1,12 @@
 server {
 	listen 8080;
+	module {
+		type = static;
+		path = "/static";
+	}
+	module {
+		type = static;
+		path = "/testFiles1";
+	}
 }
 
