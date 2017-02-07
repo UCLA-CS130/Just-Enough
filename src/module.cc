@@ -3,41 +3,31 @@
 #include <iostream>
 
 #include "module.h"
+#include "echo_module.h"
 
-//const std::string firstEntry[3] = {"type", "path", "filebase"};
+Module* createModuleFromParameters(std::shared_ptr<std::map<std::string, std::string>> params) {
+    auto typeParam = params->find("type");
+    if (typeParam == params->end()) {
+        std::cerr << "Must specify module type." << std::endl;
+        return nullptr;
+    }
 
-//Easier way to program this?
-Module::Module() {
-	std::map<std::string, std::string> moduleParameters;
+    auto pathParam = params->find("path");
+    if (pathParam == params->end()) {
+        std::cerr << "Must specify path for module to handle." << std::endl;
+        return nullptr;
+    }
+
+    if (typeParam->second == EchoModule::typeString) {
+        Module* mod = EchoModule::createFromParameters(params);
+        return mod;
+    } else {
+        std::cerr << "Unknown module type \"" << typeParam->second << "\"." << std::endl;
+        return nullptr;
+    }
+    return nullptr;
 }
 
-bool Module::add(const std::string& str, const std::string& str2) {
-	if(str.empty() || str2.empty()) {
-		std::cerr << "Entries to module are empty.\n";
-		return false;
-	}
-
-	//TODO:: A refactor into an array check?
-	if(!(str == "type" || str == "path")) {
-		std::cerr << "First entry to module is not an acceptable input.\n";
-		return false;
-	}
-
-	if(moduleParameters.find(str) == moduleParameters.end()) {
-		moduleParameters[str] = str2;
-		return true;
-	}
-
-	std::cerr << "Failed to add to module map.\n";
-	return false;
-}
-
-const std::string Module::getPathName(const std::string& str) {
-	std::map<std::string, std::string>::iterator it;
-	it = moduleParameters.find(str);
-	if(it == moduleParameters.end()) {
-		std::cerr << "Could not find particular path in module map.\n";
-		return "";
-	}
-	return it->second;
+bool Module::matchesRequestPath(const std::string& str) const {
+    return false; //TODO
 }
