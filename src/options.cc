@@ -4,6 +4,11 @@
 
 #include "options.h"
 
+const int MAX_PORT = 65535;
+const int MIN_PORT = 1024;
+
+const int COM = 0;
+const int ANS = 1;
 const int MODEQ = 1;
 const int MOD = 2;
 
@@ -48,18 +53,21 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
 
 	bool issetPort = false;
 	for (unsigned int i =0; i < config.statements_.size();i++) {
-
-		if (config.statements_[i]->tokens_[0] == "server") {
+		if (config.statements_[i]->tokens_[COM] == "server") {
 			std::shared_ptr<NginxConfigStatement> temp_config = config.statements_[i];
 			for (unsigned int j = 0; j < temp_config->child_block_->statements_.size(); j++) {
-				// Sets the port
-				if(temp_config->child_block_->statements_[j]->tokens_[0] == "listen") {
-					if(issetPort) {
+        // Sets the port
+				if(temp_config->child_block_->statements_[j]->tokens_[COM] == "listen") {
+          if(issetPort) {
 						std::cerr << "Multiple ports in config file.\n";
 						return false;
 					}
-					std::string port = temp_config->child_block_->statements_[j]->tokens_[1];
-					if((unsigned int) std::stoi(port) > 65535 || (unsigned int) std::stoi(port) < 1024) {
+					if(temp_config->child_block_->statements_[j]->tokens_.size() != 2) {
+						std::cerr << "Incorrect number of tokens. (For port)\n";
+						return false;
+					}
+					std::string port = temp_config->child_block_->statements_[j]->tokens_[ANS];
+					if((unsigned int) std::stoi(port) > MAX_PORT || (unsigned int) std::stoi(port) < MIN_PORT) {
 						std::cerr << "Invalid port number.\n";
         				return false;
 					}

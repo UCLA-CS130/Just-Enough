@@ -27,6 +27,13 @@ TEST(OptionsLoadStreamPortTest, NoPort) {
 	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
 }
 
+TEST(OptionsLoadStreamPortTest, BadNoPort) {
+	std::stringstream port("server {listen;}");
+
+	Options opt;
+	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
+}
+
 TEST(OptionsLoadStreamPortTest, MultiplePorts) {
 	std::stringstream port("server { listen 8080; listen 54545; }");
 	
