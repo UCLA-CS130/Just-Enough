@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include "options.h"
 #include "webserver.h"
 #include <sstream>
 
@@ -15,8 +16,8 @@ class MockWebserverRun : public Webserver {
         MOCK_METHOD2(acceptConnection, bool(tcp::acceptor& acceptor, tcp::socket& sock));
         MOCK_METHOD1(processConnection, void(tcp::socket& sock));
 
-        MockWebserverRun(unsigned short port)
-            : Webserver(port)
+        MockWebserverRun(Options* opt)
+            : Webserver(opt)
         { }
 };
 
@@ -31,13 +32,15 @@ class MockWebserverProcessConnection : public Webserver {
         MOCK_METHOD1(logConnectionDetails, void(tcp::socket& socket));
         MOCK_METHOD2(writeResponseString, void(boost::asio::ip::tcp::socket& socket, const std::string& s));
 
-        MockWebserverProcessConnection(unsigned short port)
-            : Webserver(port)
+        MockWebserverProcessConnection(Options* opt)
+            : Webserver(opt)
         { }
 };
 
 TEST(WebserverTest, processRawRequest) {
-    Webserver ws(8080);
+    Options opts;
+    opts.port = 8080;
+    Webserver ws(&opts);
 
     std::string req = (
             "GET / HTTP/1.1\r\n"
@@ -58,7 +61,9 @@ TEST(WebserverTest, processRawRequest) {
 
 
 TEST(WebserverTest, acceptConnections) {
-    MockWebserverRun webserver(8080);
+    Options opts;
+    opts.port = 8080;
+    MockWebserverRun webserver(&opts);
 
     EXPECT_CALL(webserver, acceptConnection(_, _))
         .Times(3)
@@ -73,7 +78,9 @@ TEST(WebserverTest, acceptConnections) {
 }
 
 TEST(WebserverTest, processConnectionTest) {
-    MockWebserverProcessConnection webserver(8080);
+    Options opts;
+    opts.port = 8080;
+    MockWebserverProcessConnection webserver(&opts);
 
     EXPECT_CALL(webserver, logConnectionDetails(_)).Times(1);
 

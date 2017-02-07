@@ -1,8 +1,10 @@
+#pragma once
 #include <boost/asio.hpp>
+#include "options.h"
 
 class Webserver {
     public:
-        Webserver(unsigned short port);
+        Webserver(Options* opt);
         virtual void run();
 
         virtual std::string readStrUntil(
@@ -18,6 +20,6 @@ class Webserver {
 
     private:
         boost::asio::io_service io_service_;
-        unsigned short port_;
+        Options* opt_;
 };
 
