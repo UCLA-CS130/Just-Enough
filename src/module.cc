@@ -23,10 +23,7 @@ Module* createModuleFromParameters(std::shared_ptr<std::map<std::string, std::st
         Module* mod = EchoModule::createFromParameters(pathParam->second, params);
         return mod;
     } else if (typeParam->second == StaticModule::typeString) {
-        Module* mod = StaticModule::createFromParameters(params);
-        return mod;
-    } else if (typeParam->second == StaticModule::typeString) {
-        Module* mod = StaticModule::createFromParameters(params);
+        Module* mod = StaticModule::createFromParameters(pathParam->second, params);
         return mod;
     } else {
         std::cerr << "Unknown module type \"" << typeParam->second << "\"." << std::endl;
@@ -53,7 +50,7 @@ bool Module::matchesRequestPath(const std::string& reqPath) const {
         pathSize--;
     }
 
-    for (int i = 0; i < pathSize; ++i) {
+    for (size_t i = 0; i < pathSize; ++i) {
         if (path_[i] != reqPath[i]) {
             return false;
         }

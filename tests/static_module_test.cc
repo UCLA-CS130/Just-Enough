@@ -29,7 +29,7 @@ TEST(StaticModuleTest, createStaticModule) {
             {"filebase", "testFiles1"},
             });
 
-    std::unique_ptr<Module> mod(StaticModule::createFromParameters(paramMap));
+    std::unique_ptr<Module> mod(StaticModule::createFromParameters("/foo", paramMap));
     ASSERT_NE(mod, nullptr);
 }
 
@@ -40,7 +40,7 @@ TEST(StaticModuleTest, needsFilebase) {
             {"path", "/foo"},
             });
 
-    std::unique_ptr<Module> mod(StaticModule::createFromParameters(paramMap));
+    std::unique_ptr<Module> mod(StaticModule::createFromParameters("/foo", paramMap));
     ASSERT_EQ(mod, nullptr);
 }
 
@@ -52,7 +52,7 @@ TEST(StaticModuleTest, nonexistantFilebase) {
             {"filebase", "definitelyNotARealDirectory"},
             });
 
-    std::unique_ptr<Module> mod(StaticModule::createFromParameters(paramMap));
+    std::unique_ptr<Module> mod(StaticModule::createFromParameters("/foo", paramMap));
     ASSERT_EQ(mod, nullptr);
 }
 
@@ -67,7 +67,7 @@ class StaticModuleTester : public ::testing::Test {
                     {"filebase", "testFiles1"},
                     });
 
-            std::unique_ptr<Module> mod(StaticModule::createFromParameters(paramMap));
+            std::unique_ptr<Module> mod(StaticModule::createFromParameters("/foo", paramMap));
             return mod;
         }
 };
