@@ -20,7 +20,19 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
         return resp.makeResponseString();
     }
 
-    resp.okaySetContent(reqStr, "text/plain");
+    bool handled = false;
+    for (auto mod : opt_->modules) {
+        if (mod->matchesRequestPath(req.getPath())) {
+            mod->handleRequest(req, &resp);
+            handled = true;
+            break;
+        }
+    }
+    if ( ! handled) {
+        std::cerr << "No module to handle request to " << req.getPath() << std::endl;
+        resp.setError(HTTPResponseCode_404_NotFound);
+    }
+
     return resp.makeResponseString();
 }
 
