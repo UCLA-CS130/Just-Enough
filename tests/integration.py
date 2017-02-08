@@ -38,17 +38,28 @@ def buildBinary():
     if buildProcess.returncode != 0:
         die("build failed")
 
+def makeModuleString(m): #dictionary cotaining all values
+    modString = 'module {\n'
+    for key, value in m.items():
+        modString += key + ' = ' + value + '; \n'
+    modString += '\n}'
+    return modString
+
+
+
 class TemporaryConfigFile:
     """ context manager for creating a temporary config file on disk """
     def __init__(self, config):
         self.config = config
 
     def __enter__(self):
+        modStrings = [makeModuleString(m) for m in self.config['modules']]
         cnfg = (
                 'server {\n'
-                '    listen %d;\n'
+                '    port = %d;\n'
+                '    %s           '
                 '}\n'
-                % self.config['port']
+                % (self.config['port'], '\n'.join(modStrings))
                 )
 
         if SHOW_GENERATED_CONFIG_INLINE:
@@ -138,18 +149,22 @@ class Test:
         config = {
                 'filename': 'temp_config',
                 'port': 8080,
+                'modules': [
+                            {'type': 'echo', 'path': '/echo'},
+                            {'type':'static', 'path':'/static', 'filebase':'testFiles1'}
+                           ],
                 }
 
         with TemporaryConfigFile(config) as filepath:
             with WebserverRunningContext(filepath):
-                code, content = makeWebserverRequest(config, '/path')
+                code, content = makeWebserverRequest(config, '/echo')
                 if not code: return "request failed"
                 if code != 200:
-                    return "expected 200 OK, but got: " + code + ": " + content
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
 
                 content = content.decode('utf-8')
                 expectedOutputLines = {
-                        'GET /path HTTP/1.1',
+                        'GET /echo HTTP/1.1',
                         'User-Agent: MyUserAgent',
                         'Host: localhost:%d' % config['port'],
                         '', # request ends in a blank line
@@ -172,14 +187,18 @@ class Test:
         config = {
                 'filename': 'temp_config',
                 'port': 14151,
+                'modules': [
+                            {'type': 'echo', 'path': '/echo'},
+                            {'type':'static', 'path':'/static', 'filebase':'testFiles1'}
+                           ],
                 }
 
         with TemporaryConfigFile(config) as filepath:
             with WebserverRunningContext(filepath):
-                code, content = makeWebserverRequest(config, '/')
+                code, content = makeWebserverRequest(config, '/echo')
                 if not code: return "request failed"
                 if code != 200:
-                    return "expected 200 OK, but got: " + code + ": " + content
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
 
                 return Test.PASS
 
@@ -198,6 +217,10 @@ class Test:
         config = {
                 'filename': 'temp_config',
                 'port': 67536, # note: larger than max port of 65535
+                'modules': [
+                            {'type': 'echo', 'path': '/echo'},
+                            {'type':'static', 'path':'/static', 'filebase':'testFiles1'}
+                           ]
                 }
 
         with TemporaryConfigFile(config) as filepath:
@@ -207,6 +230,44 @@ class Test:
             else:
                 process.terminate() # don't leave the process open
             return "webserver started unexpectedly when given bad input port"
+
+    def test_multiple():
+        """ test that multiple modules work """
+
+        config = {
+                'filename': 'temp_config',
+                'port': 8080,
+                'modules': [
+                            {'type': 'echo', 'path': '/echo'},
+                            {'type':'static', 'path':'/static', 'filebase':'testFiles1'}
+                           ],
+                }
+
+        with TemporaryConfigFile(config) as filepath:
+            with WebserverRunningContext(filepath):
+                code, content = makeWebserverRequest(config, '/echo')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+
+                content = content.decode('utf-8')
+                expectedOutputLines = {
+                        'GET /echo HTTP/1.1',
+                        'User-Agent: MyUserAgent',
+                        'Host: localhost:%d' % config['port'],
+                        '', # request ends in a blank line
+                        }
+                for line in expectedOutputLines:
+                    if line not in content.split('\r\n'):
+                        return "response does not contain expected '%s'" % line
+
+                code, content = makeWebserverRequest(config, '/static/cat.gif')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+
+
+                return Test.PASS
 
 
 def runTests():
@@ -251,4 +312,3 @@ if __name__ == '__main__':
     if not '--no-build' in sys.argv:
         buildBinary()
     runTests()
-
