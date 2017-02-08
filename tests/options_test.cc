@@ -36,7 +36,7 @@ TEST(OptionsLoadStreamPortTest, BadNoPort) {
 }
 
 TEST(OptionsLoadStreamPortTest, BadNoEQ) {
-	std::stringstream port("server {port 8080;}");
+	std::stringstream port("server {port port 8080;}");
 
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
