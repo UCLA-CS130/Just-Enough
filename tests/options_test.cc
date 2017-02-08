@@ -95,3 +95,11 @@ TEST(OptionsLoadStreamTest, NotValidType) {
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
 }
+
+TEST(OptionsLoadModule, QuotedParams) {
+	std::stringstream mod("server { module { type = static; path = \"some path\"; filebase = \"testFiles1\";} }");
+
+	Options opt;
+	EXPECT_TRUE(opt.loadOptionsFromStream(&mod));
+}
+
