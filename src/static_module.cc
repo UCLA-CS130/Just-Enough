@@ -12,12 +12,13 @@ Module* StaticModule::createFromParameters(std::shared_ptr<std::map<std::string,
         return nullptr;
     }
 
-    if ( ! boost::filesystem::exists(filebaseParam->second)) {
-        std::cerr << "Invalid 'filebase' parameter for Static Module: directory not found." << std::endl;
+    std::string filebase = filebaseParam->second;
+    if ( ! boost::filesystem::exists(filebase)) {
+        std::cerr << "Invalid 'filebase' parameter for Static Module: directory '" << filebase << "' not found." << std::endl;
         return nullptr;
     }
 
-    Module* mod = new StaticModule(filebaseParam->second);
+    Module* mod = new StaticModule(filebase);
     return mod;
 }
 
