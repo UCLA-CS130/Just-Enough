@@ -41,6 +41,13 @@ bool StaticModule::handleRequest(const HTTPRequest& req, HTTPResponse* resp) {
         filepath = filebase_ + reqPath;
     }
 
+    if (boost::filesystem::is_directory(filepath)) {
+        if (filepath[filepath.size()-1] != '/') {
+            filepath += '/';
+        }
+        filepath += "index.html";
+    }
+
     std::cout << "  > looking for '" << req.getPath() << "' (" << reqPath << ")" << " in " << filepath << std::endl;
 
     FileLoader fl;
