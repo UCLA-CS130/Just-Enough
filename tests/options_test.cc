@@ -2,6 +2,7 @@
 #include "options.h"
 #include <sstream>
 
+// PORT TESTS
 TEST(OptionsLoadStreamPortTest, BoundaryCases) {
 	std::stringstream port0("server { port = 0;}");
 	std::stringstream port1023("server { port = 1023;}");
@@ -34,6 +35,13 @@ TEST(OptionsLoadStreamPortTest, BadNoPort) {
 	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
 }
 
+TEST(OptionsLoadStreamPortTest, BadNoEQ) {
+	std::stringstream port("server {port 8080;}");
+
+	Options opt;
+	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
+}
+
 TEST(OptionsLoadStreamPortTest, MultiplePorts) {
 	std::stringstream port("server { port = 8080; port = 54545; }");
 	
@@ -51,6 +59,7 @@ TEST(OptionsLoadFileTest, ASimpleFile) {
 	EXPECT_TRUE(opt.loadOptionsFromFile("test_config"));
 }
 
+//MODULES TESTS
 TEST(OptionsLoadStreamModTest, WorkingSimpleCase) {
 	std::stringstream mod("server { module { type = echo; path = \"/testFiles1\"; }}");
 
@@ -74,6 +83,14 @@ TEST(OptionsLoadStreamModTest, NoEquals) {
 
 TEST(OptionsLoadStreamModTest, NotValidType) {
 	std::stringstream mod("server { module { type = shouldfail; } }");
+
+	Options opt;
+	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
+}
+
+//OTHERS
+TEST(OptionsLoadStreamTest, NotValidType) {
+	std::stringstream mod("server { container { type = shouldfail; } }");
 
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
