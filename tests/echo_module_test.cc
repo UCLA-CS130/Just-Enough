@@ -27,7 +27,7 @@ TEST(EchoModuleTest, createEchoModule) {
             {"path", "/foo"},
             });
 
-    std::unique_ptr<Module> mod(EchoModule::createFromParameters(paramMap));
+    std::unique_ptr<Module> mod(EchoModule::createFromParameters("/foo", paramMap));
     ASSERT_NE(mod, nullptr);
 }
 
@@ -41,7 +41,7 @@ class EchoModuleTester : public ::testing::Test {
                     {"path", "/foo"},
                     });
 
-            std::unique_ptr<Module> mod(EchoModule::createFromParameters(paramMap));
+            std::unique_ptr<Module> mod(EchoModule::createFromParameters("/foo", paramMap));
             return mod;
         }
 };

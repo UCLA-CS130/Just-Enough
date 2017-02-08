@@ -8,11 +8,13 @@
 
 class Module {
     public:
+        Module(std::string path) : path_(path) {}
         virtual ~Module() = default;
         virtual bool handleRequest(const HTTPRequest& req, HTTPResponse* resp) = 0;
         virtual bool matchesRequestPath(const std::string& str) const;
 
     private:
+        std::string path_;
         std::shared_ptr<std::map<std::string, std::string>> moduleParameters;
 };
 
