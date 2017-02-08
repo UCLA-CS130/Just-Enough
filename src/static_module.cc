@@ -29,7 +29,7 @@ StaticModule::StaticModule(string path, string filebase)
 { }
 
 bool StaticModule::handleRequest(const HTTPRequest& req, HTTPResponse* resp) {
-    std::cout << "  > request being handled by static module" << std::endl;
+    std::cout << "  > request being handled by static module (path: " << path_ << ")" << std::endl;
     string reqPath = req.getPath().substr(path_.size());
 
     // TODO: sanitize path: filter out %20, make sure '..' won't go up a directory

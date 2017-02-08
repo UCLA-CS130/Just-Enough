@@ -67,7 +67,7 @@ class StaticModuleTester : public ::testing::Test {
                     {"filebase", filebase},
                     });
 
-            std::unique_ptr<Module> mod(StaticModule::createFromParameters("/foo", paramMap));
+            std::unique_ptr<Module> mod(StaticModule::createFromParameters("/static", paramMap));
             return mod;
         }
 };
@@ -76,7 +76,7 @@ TEST_F(StaticModuleTester, handleRequest) {
     auto mod = makeTestStaticModule("testFiles1");
 
     std::string reqStr = (
-            "GET /page.html HTTP/1.1\r\n"
+            "GET /static/page.html HTTP/1.1\r\n"
             "User-Agent: Mozilla/1.0\r\n"
             "\r\n"
             );
@@ -103,7 +103,7 @@ TEST_F(StaticModuleTester, handleRequestNoFile) {
     auto mod = makeTestStaticModule("testFiles1");
 
     std::string reqStr = (
-            "GET /cannot/find/this/file HTTP/1.1\r\n"
+            "GET /static/cannot/find/this/file HTTP/1.1\r\n"
             "User-Agent: Mozilla/1.0\r\n"
             "\r\n"
             );
@@ -123,7 +123,7 @@ TEST_F(StaticModuleTester, handleRequestTrailingSlash) {
     auto mod = makeTestStaticModule("testFiles1/");
 
     std::string reqStr = (
-            "GET /page.html HTTP/1.1\r\n"
+            "GET /static/page.html HTTP/1.1\r\n"
             "User-Agent: Mozilla/1.0\r\n"
             "\r\n"
             );
@@ -146,7 +146,7 @@ TEST_F(StaticModuleTester, handleRequestImageType) {
     auto mod = makeTestStaticModule("testFiles1/");
 
     std::string reqStr = (
-            "GET /cat.gif HTTP/1.1\r\n"
+            "GET /static/cat.gif HTTP/1.1\r\n"
             "User-Agent: Mozilla/1.0\r\n"
             "\r\n"
             );
