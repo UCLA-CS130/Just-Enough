@@ -7,7 +7,7 @@ server {
 	module {
 		type = static;
 		path = /static;
-		filebase = testFiles1;
+		filebase = "testFiles1";
 	}
 }
 

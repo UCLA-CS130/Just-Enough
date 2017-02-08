@@ -34,6 +34,12 @@ bool Options::addModule(std::shared_ptr<NginxConfigStatement> module_config) {
         }
         string secondStatement = module_config->child_block_->statements_[i]->tokens_[VAL];
 
+        if (secondStatement.size() > 1
+                && secondStatement[0] == '"' && secondStatement[secondStatement.size()-1] == '"') {
+            // remove surrounding quotes
+            secondStatement = secondStatement.substr(1, secondStatement.size()-2);
+        }
+
         params->insert(std::pair<string,string>(firstStatement, secondStatement));
     }
 
