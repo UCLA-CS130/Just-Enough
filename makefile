@@ -4,10 +4,10 @@ UNAME := $(shell uname)
 
 LDFLAGS =
 ifeq ($(UNAME), Linux)
-	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -lboost_system
+	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -lboost_system -lboost_filesystem
 endif
 ifeq ($(UNAME), Darwin) # macOS
-	LDFLAGS += -L/usr/local/include -lboost_system
+	LDFLAGS += -L/usr/local/include -lboost_system -lboost_filesystem
 endif
 
 DEBUG_FLAGS = -g -Wall -Werror
