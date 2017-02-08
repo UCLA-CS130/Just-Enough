@@ -1,11 +1,7 @@
 server {
-	listen 8080;
+	port =  8080;
 	module {
-		type = static;
-		path = "/static";
-	}
-	module {
-		type = static;
+		type = echo;
 		path = "/testFiles1";
 	}
 }
