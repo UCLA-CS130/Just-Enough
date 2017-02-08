@@ -231,6 +231,44 @@ class Test:
                 process.terminate() # don't leave the process open
             return "webserver started unexpectedly when given bad input port"
 
+    def test_multiple():
+        """ test that multiple modules work """
+
+        config = {
+                'filename': 'temp_config',
+                'port': 8080,
+                'modules': [
+                            {'type': 'echo', 'path': '/echo'},
+                            {'type':'static', 'path':'/static', 'filebase':'testFiles1'}
+                           ],
+                }
+
+        with TemporaryConfigFile(config) as filepath:
+            with WebserverRunningContext(filepath):
+                code, content = makeWebserverRequest(config, '/echo')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+
+                content = content.decode('utf-8')
+                expectedOutputLines = {
+                        'GET /echo HTTP/1.1',
+                        'User-Agent: MyUserAgent',
+                        'Host: localhost:%d' % config['port'],
+                        '', # request ends in a blank line
+                        }
+                for line in expectedOutputLines:
+                    if line not in content.split('\r\n'):
+                        return "response does not contain expected '%s'" % line
+
+                code, content = makeWebserverRequest(config, '/static/cat.gif')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+
+
+                return Test.PASS
+
 
 def runTests():
     # get all methods of Test container
