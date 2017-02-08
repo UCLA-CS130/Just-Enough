@@ -25,6 +25,9 @@ Module* createModuleFromParameters(std::shared_ptr<std::map<std::string, std::st
     } else if (typeParam->second == StaticModule::typeString) {
         Module* mod = StaticModule::createFromParameters(params);
         return mod;
+    } else if (typeParam->second == StaticModule::typeString) {
+        Module* mod = StaticModule::createFromParameters(params);
+        return mod;
     } else {
         std::cerr << "Unknown module type \"" << typeParam->second << "\"." << std::endl;
         return nullptr;
