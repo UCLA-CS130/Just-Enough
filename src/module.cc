@@ -46,7 +46,7 @@ bool Module::matchesRequestPath(const std::string& reqPath) const {
         pathSize--;
     }
 
-    for (int i = 0; i < pathSize; ++i) {
+    for (size_t i = 0; i < pathSize; ++i) {
         if (path_[i] != reqPath[i]) {
             return false;
         }
