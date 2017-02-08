@@ -29,16 +29,19 @@ StaticModule::StaticModule(string path, string filebase)
 { }
 
 bool StaticModule::handleRequest(const HTTPRequest& req, HTTPResponse* resp) {
-    string path = req.getPath();
+    std::cout << "  > request being handled by static module (path: " << path_ << ")" << std::endl;
+    string reqPath = req.getPath().substr(path_.size());
 
     // TODO: sanitize path: filter out %20, make sure '..' won't go up a directory
 
     string filepath;
     if (filebase_[filebase_.size()-1] == '/') {
-        filepath = filebase_ + req.getPath().substr(1);
+        filepath = filebase_ + reqPath.substr(1);
     } else {
-        filepath = filebase_ + req.getPath();
+        filepath = filebase_ + reqPath;
     }
+
+    std::cout << "  > looking for '" << req.getPath() << "' (" << reqPath << ")" << " in " << filepath << std::endl;
 
     FileLoader fl;
 
@@ -62,6 +65,6 @@ bool StaticModule::handleRequest(const HTTPRequest& req, HTTPResponse* resp) {
             return true;
     }
 
-    resp->okaySetContent(req.getRawRequest(), HTTPContentType_Plain);
+    resp->setError(HTTPResponseCode_500_InternalServerError);
     return false;
 }

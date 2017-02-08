@@ -13,7 +13,7 @@ class Module {
         virtual bool handleRequest(const HTTPRequest& req, HTTPResponse* resp) = 0;
         virtual bool matchesRequestPath(const std::string& str) const;
 
-    private:
+    protected:
         std::string path_;
         std::shared_ptr<std::map<std::string, std::string>> moduleParameters;
 };
