@@ -2,11 +2,11 @@ server {
 	port =  8080;
 	module {
 		type = echo;
-		path = "/echo";
+		path = /echo;
 	}
 	module {
 		type = static;
-		path = "/static";
+		path = /static;
 		filebase = testFiles1;
 	}
 }

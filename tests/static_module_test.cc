@@ -59,12 +59,12 @@ TEST(StaticModuleTest, nonexistantFilebase) {
 
 class StaticModuleTester : public ::testing::Test {
     protected:
-        virtual std::unique_ptr<Module> makeTestStaticModule() {
+        virtual std::unique_ptr<Module> makeTestStaticModule(std::string filebase) {
             auto paramMap = std::make_shared<map<string, string>>(
                     std::initializer_list<map<string, string>::value_type>{
                     {"type", "echo"},
                     {"path", "/static"},
-                    {"filebase", "testFiles1"},
+                    {"filebase", filebase},
                     });
 
             std::unique_ptr<Module> mod(StaticModule::createFromParameters("/foo", paramMap));
@@ -73,7 +73,7 @@ class StaticModuleTester : public ::testing::Test {
 };
 
 TEST_F(StaticModuleTester, handleRequest) {
-    auto mod = makeTestStaticModule();
+    auto mod = makeTestStaticModule("testFiles1");
 
     std::string reqStr = (
             "GET /page.html HTTP/1.1\r\n"
@@ -99,3 +99,66 @@ TEST_F(StaticModuleTester, handleRequest) {
     //EXPECT_EQ(resp.getContent(), reqStr); // TODO: add getContent() to HTTPResponse
 }
 
+TEST_F(StaticModuleTester, handleRequestNoFile) {
+    auto mod = makeTestStaticModule("testFiles1");
+
+    std::string reqStr = (
+            "GET /cannot/find/this/file HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "\r\n"
+            );
+
+    HTTPRequest req;
+    HTTPRequestError err = req.loadFromRawRequest(reqStr);
+    ASSERT_EQ(err, HTTPRequestError_None);
+
+    HTTPResponse resp;
+    ASSERT_TRUE(mod->handleRequest(req, &resp));
+
+    string respStr = resp.makeResponseString();
+    EXPECT_THAT(respStr, HasSubstr("404 Not Found"));
+}
+
+TEST_F(StaticModuleTester, handleRequestTrailingSlash) {
+    auto mod = makeTestStaticModule("testFiles1/");
+
+    std::string reqStr = (
+            "GET /page.html HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "\r\n"
+            );
+
+    HTTPRequest req;
+    HTTPRequestError err = req.loadFromRawRequest(reqStr);
+    ASSERT_EQ(err, HTTPRequestError_None);
+
+    HTTPResponse resp;
+    ASSERT_TRUE(mod->handleRequest(req, &resp));
+
+    string respStr = resp.makeResponseString();
+    EXPECT_THAT(respStr, HasSubstr("200 OK"));
+    EXPECT_THAT(respStr, HasSubstr("Content-Type: text/html"));
+    EXPECT_THAT(respStr, HasSubstr("<html>"));
+    EXPECT_THAT(respStr, HasSubstr("</html>"));
+}
+
+TEST_F(StaticModuleTester, handleRequestImageType) {
+    auto mod = makeTestStaticModule("testFiles1/");
+
+    std::string reqStr = (
+            "GET /cat.gif HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "\r\n"
+            );
+
+    HTTPRequest req;
+    HTTPRequestError err = req.loadFromRawRequest(reqStr);
+    ASSERT_EQ(err, HTTPRequestError_None);
+
+    HTTPResponse resp;
+    ASSERT_TRUE(mod->handleRequest(req, &resp));
+
+    string respStr = resp.makeResponseString();
+    EXPECT_THAT(respStr, HasSubstr("200 OK"));
+    EXPECT_THAT(respStr, HasSubstr("Content-Type: image/gif"));
+}
