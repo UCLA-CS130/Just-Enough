@@ -12,10 +12,9 @@ const int MAX_PORT = 65535;
 const int MIN_PORT = 1024;
 
 const int KEY = 0;
-const int EQUALS = 1;
-const int VAL = 2;
+const int VAL = 1;
 
-const int STATEMENT_SIZE = 3;
+const int STATEMENT_SIZE = 2;
 
 bool Options::addModule(std::shared_ptr<NginxConfigStatement> module_config) {
     std::shared_ptr<stringMap> params = std::make_shared<stringMap>();
@@ -24,14 +23,10 @@ bool Options::addModule(std::shared_ptr<NginxConfigStatement> module_config) {
 
         // For now, not allowed to go into another module/server within a module
         if(module_config->child_block_->statements_[i]->tokens_.size() != STATEMENT_SIZE) {
-            std::cerr << "Not a valid module statement. Need three tokens.\n";
+            std::cerr << "Not a valid module statement. Need two tokens.\n";
             return false;
         }
         string firstStatement = module_config->child_block_->statements_[i]->tokens_[KEY];
-        if(module_config->child_block_->statements_[i]->tokens_[EQUALS] != "=") {
-            std::cerr << "Module statement needs \"=\" between tokens.\n";
-            return false;
-        }
         string secondStatement = module_config->child_block_->statements_[i]->tokens_[VAL];
 
         if (secondStatement.size() > 1
@@ -57,10 +52,7 @@ bool Options::addPort(std::shared_ptr<NginxConfigStatement> port_config) {
         std::cerr << "Incorrect number of tokens. (For port)\n";
         return false;
     }
-    if(port_config->tokens_[EQUALS] != "=") {
-        std::cerr << "Port statement needs \"=\" between tokens.\n";
-        return false;
-    }
+
     string port = port_config->tokens_[VAL];
     if((unsigned int) std::stoi(port) > MAX_PORT || (unsigned int) std::stoi(port) < MIN_PORT) {
         std::cerr << "Invalid port number.\n";
@@ -89,8 +81,7 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
                     if(issetPort) {
                         std::cerr << "Multiple ports in config file.\n";
                         return false;
-                    }
-                    else {
+                    } else {
                         issetPort = addPort(temp_config->child_block_->statements_[j]);
                         if(!issetPort) {
                             return false;

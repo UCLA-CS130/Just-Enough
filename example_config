@@ -1,13 +1,9 @@
 server {
-	port =  8080;
-	module {
-		type = echo;
-		path = /echo;
+	port 8080;
+	path / static {
+		root /foo/bar;
 	}
-	module {
-		type = static;
-		path = /static;
-		filebase = "testFiles1";
+	path /echo echo {
 	}
 }
 
