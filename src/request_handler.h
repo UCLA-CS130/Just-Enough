@@ -24,6 +24,14 @@ class Request {
         Headers headers() const;
 
         std::string body() const;
+
+    private:
+        std::string uri_;
+        std::string version_;
+        std::string method_;
+        Headers headers_;
+        std::string raw_request_;
+        std::string body_;
 };
 
 // Represents an HTTP response.
