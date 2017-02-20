@@ -1,6 +1,7 @@
 #pragma once
-#include "http_request.h"
-#include "http_response.h"
+//#include "http_request.h"
+//#include "http_response.h"
+#include "request_handler.h"
 
 #include <map>
 #include <memory>
@@ -10,7 +11,7 @@ class Module {
     public:
         Module(std::string path) : path_(path) {}
         virtual ~Module() = default;
-        virtual bool handleRequest(const HTTPRequest& req, HTTPResponse* resp) = 0;
+        virtual bool handleRequest(const Request& req, Response* resp) = 0;
         virtual bool matchesRequestPath(const std::string& str) const;
 
     protected:

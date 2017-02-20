@@ -28,9 +28,9 @@ StaticModule::StaticModule(string path, string filebase)
     : Module(path), filebase_(filebase)
 { }
 
-bool StaticModule::handleRequest(const HTTPRequest& req, HTTPResponse* resp) {
+bool StaticModule::handleRequest(const Request& req, Response* resp) {
     std::cout << "  > request being handled by static module (path: " << path_ << ")" << std::endl;
-    string reqPath = req.getPath().substr(path_.size());
+    string reqPath = req.uri().substr(path_.size());
 
     // TODO: sanitize path: filter out %20, make sure '..' won't go up a directory
 
@@ -48,7 +48,7 @@ bool StaticModule::handleRequest(const HTTPRequest& req, HTTPResponse* resp) {
         filepath += "index.html";
     }
 
-    std::cout << "  > looking for '" << req.getPath() << "' (" << reqPath << ")" << " in " << filepath << std::endl;
+    std::cout << "  > looking for '" << req.uri() << "' (" << reqPath << ")" << " in " << filepath << std::endl;
 
     FileLoader fl;
 
@@ -57,21 +57,24 @@ bool StaticModule::handleRequest(const HTTPRequest& req, HTTPResponse* resp) {
 
     switch (err) {
         case FileErr_NoFile:
-            resp->setError(HTTPResponseCode_404_NotFound);
+            resp->SetStatus(Response::code_404_not_found);
             return true;
         case FileErr_NoPermission:
-            resp->setError(HTTPResponseCode_401_Unauthorized);
+            resp->SetStatus(Response::code_401_unauthorized);
             return true;
         case FileErr_IOErr:
-            resp->setError(HTTPResponseCode_500_InternalServerError);
+            resp->SetStatus(Response::code_500_internal_error);
             return true;
         case FileErr_None:
             MIMEType mt = fl.guessMIMEType();
             string contentType = MIMETypeMap.at(mt);
-            resp->okaySetContent(data, contentType);
+
+            resp->SetStatus(Response::code_200_OK);
+            resp->AddHeader("Content-Type", contentType);
+            resp->SetBody(data);
             return true;
     }
 
-    resp->setError(HTTPResponseCode_500_InternalServerError);
+    resp->SetStatus(Response::code_500_internal_error);
     return false;
 }

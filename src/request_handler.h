@@ -1,3 +1,8 @@
+#pragma once
+#include <string>
+#include "config_parser.h"
+
+
 // For the Request and Response classes, you need to implement the methods
 // and add private data as appropriate. You may also need to modify or extend
 // the API when implementing the reverse proxy. Use your good judgment.
@@ -8,7 +13,7 @@
 //   auto request = Request::Parse(raw_request);
 class Request {
     public:
-        static unique_ptr<Request> Parse(const std::string& raw_request);
+        static std::unique_ptr<Request> Parse(const std::string& raw_request);
 
         std::string raw_request() const;
         std::string method() const;
@@ -35,9 +40,10 @@ class Response {
     public:
         enum ResponseCode {
             // Define your HTTP response codes here.
-            Response_200_OK = 200,
-            Response_404_Not_Found = 404,
-            Response_500_Internal_Error = 500,
+            code_200_OK = 200,
+            code_401_unauthorized = 401,
+            code_404_not_found = 404,
+            code_500_internal_error = 500,
         };
 
         void SetStatus(const ResponseCode response_code);
@@ -52,8 +58,7 @@ class Response {
 class RequestHandler {
     public:
         enum Status {
-            OK = 0;
-            // Define your status codes here.
+            OK = 0,
         };
 
         // Initializes the handler. Returns a response code indicating success or

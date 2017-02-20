@@ -3,37 +3,32 @@
 #include <iostream>
 #include <boost/system/error_code.hpp>
 
-#include "http_request.h"
-#include "http_response.h"
+//#include "http_request.h"
+//#include "http_response.h"
+#include "request_handler.h"
 #include "webserver.h"
 
 using boost::asio::ip::tcp;
 
 std::string Webserver::processRawRequest(std::string& reqStr) {
-    HTTPRequest req;
-    HTTPResponse resp;
-
-    HTTPRequestError err = req.loadFromRawRequest(reqStr);
-    if (err) {
-        std::cout << "Error processing request" << std::endl;
-        resp.setErrorFromHTTPRequestError(err);
-        return resp.makeResponseString();
-    }
+    auto req = Request::Parse(reqStr);
+    Response resp;
 
     bool handled = false;
     for (auto mod : opt_->modules) {
-        if (mod->matchesRequestPath(req.getPath())) {
-            mod->handleRequest(req, &resp);
+        if (mod->matchesRequestPath(req->uri())) {
+            mod->handleRequest(*req, &resp);
             handled = true;
             break;
         }
     }
     if ( ! handled) {
-        std::cerr << "No module to handle request to " << req.getPath() << std::endl;
-        resp.setError(HTTPResponseCode_404_NotFound);
+        std::cerr << "No module to handle request to " << req->uri() << std::endl;
+        resp.SetStatus(Response::code_404_not_found);
+        resp.SetBody("404 Not Found");
     }
 
-    return resp.makeResponseString();
+    return resp.ToString();
 }
 
 inline std::string Webserver::readStrUntil(
