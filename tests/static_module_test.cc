@@ -81,14 +81,13 @@ TEST_F(StaticModuleTester, handleRequest) {
             "\r\n"
             );
 
-    HTTPRequest req;
-    HTTPRequestError err = req.loadFromRawRequest(reqStr);
-    ASSERT_EQ(err, HTTPRequestError_None);
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    ASSERT_NE(req, nullptr);
 
-    HTTPResponse resp;
-    ASSERT_TRUE(mod->handleRequest(req, &resp));
+    Response resp;
+    ASSERT_TRUE(mod->handleRequest(*req, &resp));
 
-    string respStr = resp.makeResponseString();
+    string respStr = resp.ToString();
     EXPECT_THAT(respStr, HasSubstr("200 OK"));
     EXPECT_THAT(respStr, HasSubstr("Content-Type: text/html"));
     EXPECT_THAT(respStr, HasSubstr("<html>"));
@@ -108,14 +107,13 @@ TEST_F(StaticModuleTester, handleRequestNoFile) {
             "\r\n"
             );
 
-    HTTPRequest req;
-    HTTPRequestError err = req.loadFromRawRequest(reqStr);
-    ASSERT_EQ(err, HTTPRequestError_None);
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    ASSERT_NE(req, nullptr);
 
-    HTTPResponse resp;
-    ASSERT_TRUE(mod->handleRequest(req, &resp));
+    Response resp;
+    ASSERT_TRUE(mod->handleRequest(*req, &resp));
 
-    string respStr = resp.makeResponseString();
+    string respStr = resp.ToString();
     EXPECT_THAT(respStr, HasSubstr("404 Not Found"));
 }
 
@@ -128,14 +126,13 @@ TEST_F(StaticModuleTester, handleRequestTrailingSlash) {
             "\r\n"
             );
 
-    HTTPRequest req;
-    HTTPRequestError err = req.loadFromRawRequest(reqStr);
-    ASSERT_EQ(err, HTTPRequestError_None);
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    ASSERT_NE(req, nullptr);
 
-    HTTPResponse resp;
-    ASSERT_TRUE(mod->handleRequest(req, &resp));
+    Response resp;
+    ASSERT_TRUE(mod->handleRequest(*req, &resp));
 
-    string respStr = resp.makeResponseString();
+    string respStr = resp.ToString();
     EXPECT_THAT(respStr, HasSubstr("200 OK"));
     EXPECT_THAT(respStr, HasSubstr("Content-Type: text/html"));
     EXPECT_THAT(respStr, HasSubstr("<html>"));
@@ -151,14 +148,13 @@ TEST_F(StaticModuleTester, handleRequestImageType) {
             "\r\n"
             );
 
-    HTTPRequest req;
-    HTTPRequestError err = req.loadFromRawRequest(reqStr);
-    ASSERT_EQ(err, HTTPRequestError_None);
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    ASSERT_NE(req, nullptr);
 
-    HTTPResponse resp;
-    ASSERT_TRUE(mod->handleRequest(req, &resp));
+    Response resp;
+    ASSERT_TRUE(mod->handleRequest(*req, &resp));
 
-    string respStr = resp.makeResponseString();
+    string respStr = resp.ToString();
     EXPECT_THAT(respStr, HasSubstr("200 OK"));
     EXPECT_THAT(respStr, HasSubstr("Content-Type: image/gif"));
 }

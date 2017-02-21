@@ -55,19 +55,14 @@ TEST_F(EchoModuleTester, handleRequest) {
             "\r\n"
             );
 
-    HTTPRequest req;
-    HTTPRequestError err = req.loadFromRawRequest(reqStr);
-    ASSERT_EQ(err, HTTPRequestError_None);
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    ASSERT_NE(req, nullptr);
 
-    HTTPResponse resp;
-    ASSERT_TRUE(mod->handleRequest(req, &resp));
+    Response resp;
+    ASSERT_TRUE(mod->handleRequest(*req, &resp));
 
-    string respStr = resp.makeResponseString();
+    string respStr = resp.ToString();
     EXPECT_THAT(respStr, HasSubstr("200 OK"));
     EXPECT_THAT(respStr, HasSubstr(reqStr));
-
-    // TODO: use these instead of checking the string response output!
-    //EXPECT_EQ(resp.getCode(), HTTPResponseCode_200_OK); // TODO: add getCode() to HTTPResponse
-    //EXPECT_EQ(resp.getContent(), reqStr); // TODO: add getContent() to HTTPResponse
 }
 
