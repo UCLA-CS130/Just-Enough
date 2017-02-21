@@ -47,10 +47,13 @@ class Request {
 class Response {
     public:
         enum ResponseCode {
-            // Define your HTTP response codes here.
             code_200_OK = 200,
+
+            code_400_bad_request = 400,
             code_401_unauthorized = 401,
+            code_403_forbidden = 403,
             code_404_not_found = 404,
+
             code_500_internal_error = 500,
         };
 
@@ -59,8 +62,15 @@ class Response {
         void SetBody(const std::string& body);
 
         std::string ToString();
+
+    private:
+        ResponseCode code_;
+        std::string body_;
+        using Headers = std::vector<std::pair<std::string, std::string>>;
+        Headers headers_;
 };
 
+/*
 // Represents the parent of all request handlers. Implementations should expect to
 // be long lived and created at server constrution.
 class RequestHandler {
@@ -83,3 +93,4 @@ class RequestHandler {
         virtual Status HandleRequest(const Request& request,
                 Response* response) = 0;
 };
+*/
