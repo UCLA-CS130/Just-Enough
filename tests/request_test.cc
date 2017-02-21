@@ -158,4 +158,43 @@ TEST(RequestTest, emptybody) {
     EXPECT_EQ(req->body(), "");
 }
 
-// TODO: implement & test request body
+TEST(RequestTest, body) {
+    std::string reqStr = (
+            "POST / HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "Content-Length: 10\r\n"
+            "\r\n"
+            "0123456789"
+            );
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    EXPECT_NE(req, nullptr);
+
+    EXPECT_EQ(req->body(), "0123456789");
+}
+
+TEST(RequestTest, bodyBadHeader) {
+    std::string reqStr = (
+            "POST / HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "Content-Length: failure\r\n"
+            "\r\n"
+            "0123456789"
+            );
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    EXPECT_NE(req, nullptr);
+
+    EXPECT_EQ(req->body(), "");
+}
+
+TEST(RequestTest, bodyNoContentLength) {
+    std::string reqStr = (
+            "POST / HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "\r\n"
+            "0123456789"
+            );
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    EXPECT_NE(req, nullptr);
+
+    EXPECT_EQ(req->body(), "");
+}

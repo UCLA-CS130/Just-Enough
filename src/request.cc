@@ -33,6 +33,7 @@ std::unique_ptr<Request> Request::Parse(const string& raw_request) {
     }
     req->version_ = headTokens[2];
 
+    int contentLength = 0;
     while (true) {
         string line = getCRLFLine(reqSS);
         if (line == "") break;
@@ -51,8 +52,20 @@ std::unique_ptr<Request> Request::Parse(const string& raw_request) {
         }
         string headerValue = line.substr(headerValueStart);
 
+        if (headerKey == "Content-Length") {
+            contentLength = std::strtol(headerValue.c_str(), nullptr, 10); // 0 on error
+        }
+
         // TODO: check if header is given twice?
         req->headers_.push_back(std::pair<string,string>(headerKey, headerValue));
+    }
+
+    if (contentLength > 0) {
+        // read contentLength characters directly into req->body
+        req->body_.resize(contentLength, '\0');
+        reqSS.read(&req->body_[0], contentLength);
+        // request body is only filled if "Content-Type" is specified,
+        // as per https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html
     }
 
     req->raw_request_ = raw_request;
