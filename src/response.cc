@@ -28,7 +28,7 @@ const static std::map<Response::ResponseCode, std::string> responseCodeStrings =
     {Response::code_403_forbidden, "403 Forbidden"},
     {Response::code_404_not_found, "404 Not Found"},
 
-    {Response::code_500_internal_error, "500_internal_error"},
+    {Response::code_500_internal_error, "500 Internal Server Error"},
 };
 
 string Response::ToString() {
