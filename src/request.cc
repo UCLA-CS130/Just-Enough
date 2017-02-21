@@ -70,7 +70,7 @@ string Request::uri() const {
     return uri_;
 }
 string Request::version() const {
-    return body_;
+    return version_;
 }
 Headers Request::headers() const {
     return headers_;
