@@ -1,9 +1,12 @@
-server {
-	port 8080;
-	path / static {
-		root /foo/bar;
-	}
-	path /echo echo {
-	}
+# This is a comment.
+
+port 2020;  # This is also a comment.
+
+path / StaticHandler {
+  	root /foo/bar;
+}
+
+path /echo EchoHandler {
+	
 }
 
