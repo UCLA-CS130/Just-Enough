@@ -17,6 +17,53 @@ const int VAL = 2;
 
 const int STATEMENT_SIZE = 3;
 
+bool Options::addHandler(std::shared_ptr<NginxConfigStatement> handler_config) {
+    std::shared_ptr<stringMap> params = std::make_shared<stringMap>();
+
+    for(size_t i = 0; i < handler_config->child_block_->statements_.size(); i++) {
+
+        // For now, not allowed to go into another module/server within a module
+        if(handler_config->child_block_->statements_[i]->tokens_.size() != STATEMENT_SIZE) {
+            std::cerr << "Not a valid module statement. Need three tokens.\n";
+            return false;
+        }
+        string firstStatement = handler_config->child_block_->statements_[i]->tokens_[KEY];
+        if(handler_config->child_block_->statements_[i]->tokens_[EQUALS] != "=") {
+            std::cerr << "Module statement needs \"=\" between tokens.\n";
+            return false;
+        }
+        string secondStatement = handler_config->child_block_->statements_[i]->tokens_[VAL];
+
+        if (secondStatement.size() > 1
+                && secondStatement[0] == '"' && secondStatement[secondStatement.size()-1] == '"') {
+            // remove surrounding quotes
+            secondStatement = secondStatement.substr(1, secondStatement.size()-2);
+        }
+
+        params->insert(std::pair<string,string>(firstStatement, secondStatement));
+    }
+
+    auto typeParam = params->find("type");
+    if (typeParam == params->end()) {
+        std::cerr << "Must specify handler type." << std::endl;
+        return false;
+    }
+
+    auto pathParam = params->find("path");
+    if (pathParam == params->end()) {
+        std::cerr << "Must specify path prefix for handler." << std::endl;
+        return false;
+    }
+
+    RequestHandler* handler = RequestHandler::CreateByName(typeParam->second.c_str());
+    if ( ! handler) {
+        return false;
+    }
+
+    handlerMap[pathParam->second] = handler;
+    return true;
+}
+
 bool Options::addModule(std::shared_ptr<NginxConfigStatement> module_config) {
     std::shared_ptr<stringMap> params = std::make_shared<stringMap>();
 
@@ -100,6 +147,9 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
 
                 // Sets modules.
                 else if (temp_config->child_block_->statements_[j]->tokens_[KEY] == "module"){
+                    if(addHandler(temp_config->child_block_->statements_[j]) == false) {
+                        std::cerr << "Failed to add handler.\n";
+                    }
                     if(addModule(temp_config->child_block_->statements_[j]) == false) {
                         return false;
                     }

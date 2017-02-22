@@ -15,15 +15,26 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
     Response resp;
 
     bool handled = false;
-    for (auto mod : opt_->modules) {
-        if (mod->matchesRequestPath(req->uri())) {
-            mod->handleRequest(*req, &resp);
+
+    // TODO(evan): stop using brute force prefix matching
+    std::string prefix = req->uri();
+    for (int prefixSize = prefix.size(); prefixSize > 0; prefixSize--) {
+        prefix.resize(prefixSize);
+
+        std::cout << "checking prefix '" << prefix << "'" << std::endl;
+        auto match = opt_->handlerMap.find(prefix);
+        if (match != opt_->handlerMap.end()) {
+            RequestHandler* handler = match->second;
+            std::cout << " > matched '" << handler << "'" << std::endl;
+
             handled = true;
+            handler->HandleRequest(*req, &resp);
             break;
         }
     }
+
     if ( ! handled) {
-        std::cerr << "No module to handle request to " << req->uri() << std::endl;
+        std::cerr << "No handler to handle request to " << req->uri() << std::endl;
         resp.SetStatus(Response::code_404_not_found);
         resp.SetBody("404 Not Found");
     }

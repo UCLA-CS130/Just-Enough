@@ -17,6 +17,11 @@ int main(int argc, char* argv[]) {
     unsigned short port_num = opt.port;
     std::cout << "configured port: " << port_num << std::endl;
 
+    std::cout << "registered handlers:" << std::endl;
+    for (auto& hand : opt.handlerMap) {
+        std::cout << "    [" << hand.first << "]: " << hand.second << std::endl;
+    }
+
     Webserver ws(&opt);
     ws.run();
 
