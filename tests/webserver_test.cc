@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-#include "echo_module.h"
+#include "echo_handler.h"
 #include "options.h"
 #include "webserver.h"
 #include <sstream>
@@ -41,7 +41,11 @@ class MockWebserverProcessConnection : public Webserver {
 TEST(WebserverTest, processRawRequest) {
     Options opts;
     opts.port = 8080;
-    opts.modules.push_back(new EchoModule("/"));
+    RequestHandler* handler = new EchoHandler();
+    std::string uri = "/";
+    NginxConfig config;
+    handler->Init(uri, config);
+    opts.handlerMap[uri] = handler;
     Webserver ws(&opts);
 
     std::string req = (
