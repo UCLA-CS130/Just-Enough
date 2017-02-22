@@ -12,26 +12,31 @@ const int MAX_PORT = 65535;
 const int MIN_PORT = 1024;
 
 const int KEY = 0;
-const int EQUALS = 1;
-const int VAL = 2;
+const int VAL = 1;
+const int HANDLER = 2;
 
-const int STATEMENT_SIZE = 3;
+const int STATEMENT_SIZE = 2;
+const int PATH_SIZE = 3;
 
 bool Options::addModule(std::shared_ptr<NginxConfigStatement> module_config) {
     std::shared_ptr<stringMap> params = std::make_shared<stringMap>();
 
+    // Get path first.
+    if(module_config->tokens_.size() != PATH_SIZE) {
+        std::cerr << "Not a valid path statement. Need three tokens.\n";
+        return false;
+    }
+    string location = module_config->tokens_[VAL];
+    string handlerType = module_config->tokens_[HANDLER];
+
+    // Enter child block.
     for(size_t i = 0; i < module_config->child_block_->statements_.size(); i++) {
 
-        // For now, not allowed to go into another module/server within a module
         if(module_config->child_block_->statements_[i]->tokens_.size() != STATEMENT_SIZE) {
-            std::cerr << "Not a valid module statement. Need three tokens.\n";
+            std::cerr << "Not a valid child block statement. Need two tokens.\n";
             return false;
         }
         string firstStatement = module_config->child_block_->statements_[i]->tokens_[KEY];
-        if(module_config->child_block_->statements_[i]->tokens_[EQUALS] != "=") {
-            std::cerr << "Module statement needs \"=\" between tokens.\n";
-            return false;
-        }
         string secondStatement = module_config->child_block_->statements_[i]->tokens_[VAL];
 
         if (secondStatement.size() > 1
@@ -39,7 +44,6 @@ bool Options::addModule(std::shared_ptr<NginxConfigStatement> module_config) {
             // remove surrounding quotes
             secondStatement = secondStatement.substr(1, secondStatement.size()-2);
         }
-
         params->insert(std::pair<string,string>(firstStatement, secondStatement));
     }
 
@@ -57,10 +61,7 @@ bool Options::addPort(std::shared_ptr<NginxConfigStatement> port_config) {
         std::cerr << "Incorrect number of tokens. (For port)\n";
         return false;
     }
-    if(port_config->tokens_[EQUALS] != "=") {
-        std::cerr << "Port statement needs \"=\" between tokens.\n";
-        return false;
-    }
+
     string port = port_config->tokens_[VAL];
     if((unsigned int) std::stoi(port) > MAX_PORT || (unsigned int) std::stoi(port) < MIN_PORT) {
         std::cerr << "Invalid port number.\n";
@@ -80,36 +81,32 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
 
     bool issetPort = false;
     for (unsigned int i =0; i < config.statements_.size(); i++) {
-        if (config.statements_[i]->tokens_[KEY] == "server") {
-            std::shared_ptr<NginxConfigStatement> temp_config = config.statements_[i];
-            for (unsigned int j = 0; j < temp_config->child_block_->statements_.size(); j++) {
+        std::shared_ptr<NginxConfigStatement> temp_config = config.statements_[i];
 
-                // Sets port.
-                if(temp_config->child_block_->statements_[j]->tokens_[KEY] == "port") {
-                    if(issetPort) {
-                        std::cerr << "Multiple ports in config file.\n";
-                        return false;
-                    }
-                    else {
-                        issetPort = addPort(temp_config->child_block_->statements_[j]);
-                        if(!issetPort) {
-                            return false;
-                        }
-                    }
-                }
-
-                // Sets modules.
-                else if (temp_config->child_block_->statements_[j]->tokens_[KEY] == "module"){
-                    if(addModule(temp_config->child_block_->statements_[j]) == false) {
-                        return false;
-                    }
-                }
-
-                // For future child blocks in config file.
-                else{
+        // Sets port.
+        if(temp_config->tokens_[KEY] == "port") {
+            if(issetPort) {
+                std::cerr << "Multiple ports in config file.\n";
+                    return false;
+            } else {
+                issetPort = addPort(temp_config);
+                if(!issetPort) {
                     return false;
                 }
             }
+        }
+
+        // Sets path.
+        else if (temp_config->tokens_[KEY] == "path"){
+            if(addModule(temp_config) == false) {
+                return false;
+            }
+        }
+
+        // For future statements in config file.
+        else {
+            std::cerr << "Unknown specifier " << temp_config->tokens_[KEY] << " .";
+            return false;
         }
     }
     return true;
