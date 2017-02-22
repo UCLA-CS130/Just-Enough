@@ -1,6 +1,7 @@
 CC = g++
 CFLAGS = -std=c++11
 UNAME := $(shell uname)
+CFLAGS += $(EXTRA_FLAGS)
 
 LDFLAGS =
 ifeq ($(UNAME), Linux)
@@ -12,51 +13,72 @@ endif
 
 DEBUG_FLAGS = -g -Wall -Werror
 
+COV_DIR = coverage
 COVCC = gcov
 COVRFLAGS = -r
 COVFLAGS = -fprofile-arcs -ftest-coverage
-#-fprofile-dir="./cov"
 
 MAIN = src/main.cc
 CC_FILES = $(filter-out $(MAIN), $(wildcard src/*.cc))
 TEST_FILES = $(wildcard tests/*.cc)
+OBJ_DIR = build
+OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(CC_FILES:.cc=.o)))
+TEST_OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(TEST_FILES:.cc=.o)))
 
 GTEST_DIR = googletest/googletest
 GMOCK_DIR = googletest/googlemock
 TEST_FLAGS = -isystem $(GTEST_DIR)/include -isystem $(GMOCK_DIR)/include -pthread
 
+all: $(OBJ_FILES)
+	@echo "$(C)Linking $(CLR)"
+	@$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(MAIN) $^ -o webserver $(LDFLAGS)
 
-all:
-	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(MAIN) $(CC_FILES) -o webserver $(LDFLAGS)
+$(OBJ_DIR)/%.o: src/%.cc
+	@mkdir -p $(OBJ_DIR)
+	@echo "$(C)Compiling Source: $(CLR) $<"
+	@$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(WARNINGS) -c $< -o $@
 
-test:
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc $(LDFLAGS)
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $(GMOCK_DIR)/src/gmock-all.cc $(LDFLAGS)
-	ar -rv libgmock.a gtest-all.o gmock-all.o
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $(CC_FILES) $(TEST_FILES) $(GTEST_DIR)/src/gtest_main.cc libgmock.a -o run_tests $(LDFLAGS)
-	./run_tests
+$(OBJ_DIR)/%.o: tests/%.cc
+	@mkdir -p $(OBJ_DIR)
+	@echo "$(C)Compiling Test Source: $(CLR) $<"
+	@$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $^ -o $@
+
+$(OBJ_DIR)/gtest-all.o: $(GTEST_DIR)/src/gtest-all.cc
+	@mkdir -p $(OBJ_DIR)
+	@echo "$(C)Compiling libgtest$(CLR)"
+	@$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $^ -o $@
+$(OBJ_DIR)/gmock-all.o: $(GMOCK_DIR)/src/gmock-all.cc
+	@mkdir -p $(OBJ_DIR)
+	@echo "$(C)Compiling libgmock$(CLR)"
+	@$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $^ -o $@
+
+test: $(OBJ_FILES) $(OBJ_DIR)/gtest-all.o $(OBJ_DIR)/gmock-all.o $(TEST_OBJ_FILES)
+	@echo "$(C)Linking tests$(CLR)"
+	@$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $^ $(GTEST_DIR)/src/gtest_main.cc -o $(OBJ_DIR)/run_tests $(LDFLAGS)
+	@echo "$(C)Running tests$(CLR)"
+	@$(OBJ_DIR)/run_tests
 
 integration:
 	tests/integration.py
 
-coverage:
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc $(LDFLAGS)
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $(GMOCK_DIR)/src/gmock-all.cc $(LDFLAGS)
-	ar -rv libgmock.a gtest-all.o gmock-all.o
-	$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $(CC_FILES) $(TEST_FILES) $(GTEST_DIR)/src/gtest_main.cc libgmock.a -o run_tests $(LDFLAGS) $(COVFLAGS)
-	./run_tests
-	$(COVCC) $(COVRFLAGS) -s src $(notdir $(CC_FILES))
+# Note: coverage requires recompiling everything with new flags
+# after a coverage build, you need to `make clean` again before recompiling.
+coverage: clean
+	@mkdir -p $(COV_DIR)
+	@exec make test EXTRA_FLAGS="$(COVFLAGS)"
+	@$(COVCC) $(COVRFLAGS) -s src -o $(OBJ_DIR) $(notdir $(CC_FILES))
 
 test-all: test integration
 
 clean:
-	-rm *.o
-	-rm *.a
-	-rm *.gcno
-	-rm *.gcov
-	-rm *.gcda
-	-rm -rf *.dSYM
-	-rm webserver
-	-rm run_tests
+	@-rm -f *.o
+	@-rm -f *.a
+	@-rm -f *.gcno
+	@-rm -f *.gcov
+	@-rm -f *.gcda
+	@-rm -rf *.dSYM
+	@-rm -rf build
+	@-rm -f webserver
+	@-rm -f run_tests
 
 
