@@ -13,7 +13,7 @@ const int MIN_PORT = 1024;
 
 const int KEY = 0;
 const int VAL = 1;
-const int HANDLER = 3;
+const int HANDLER = 2;
 
 const int STATEMENT_SIZE = 2;
 const int PATH_SIZE = 3;
@@ -105,6 +105,7 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
 
         // For future statements in config file.
         else {
+            std::cerr << "Unknown specifier " << temp_config->tokens_[KEY] << " .";
             return false;
         }
     }
