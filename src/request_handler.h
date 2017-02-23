@@ -70,7 +70,6 @@ class Response {
         Headers headers_;
 };
 
-/*
 // Represents the parent of all request handlers. Implementations should expect to
 // be long lived and created at server constrution.
 class RequestHandler {
@@ -92,5 +91,9 @@ class RequestHandler {
         // HTTP code 500.
         virtual Status HandleRequest(const Request& request,
                 Response* response) = 0;
+
+        static RequestHandler* CreateByName(const char* type);
+
+        virtual ~RequestHandler() = default;
 };
-*/
+

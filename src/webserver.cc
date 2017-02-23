@@ -3,30 +3,43 @@
 #include <iostream>
 #include <boost/system/error_code.hpp>
 
-//#include "http_request.h"
-//#include "http_response.h"
 #include "request_handler.h"
 #include "webserver.h"
 
 using boost::asio::ip::tcp;
 
+// perform longest prefix matching and return matching handler, or nullptr
+RequestHandler* Webserver::matchRequestWithHandler(const Request& req) {
+    // TODO(evan): stop using brute force prefix matching
+    std::string prefix = req.uri();
+    for (int prefixSize = prefix.size(); prefixSize > 0; prefixSize--) {
+        prefix.resize(prefixSize);
+
+        std::cout << "checking prefix '" << prefix << "'" << std::endl;
+        auto match = opt_->handlerMap.find(prefix);
+        if (match != opt_->handlerMap.end()) {
+            RequestHandler* handler = match->second;
+            std::cout << " > matched '" << handler << "'" << std::endl;
+
+            return handler;
+        }
+    }
+    return nullptr;
+}
+
 std::string Webserver::processRawRequest(std::string& reqStr) {
     auto req = Request::Parse(reqStr);
     Response resp;
 
-    bool handled = false;
-    for (auto mod : opt_->modules) {
-        if (mod->matchesRequestPath(req->uri())) {
-            mod->handleRequest(*req, &resp);
-            handled = true;
-            break;
-        }
-    }
-    if ( ! handled) {
-        std::cerr << "No module to handle request to " << req->uri() << std::endl;
+    RequestHandler* handler = matchRequestWithHandler(*req);
+
+    if ( ! handler) {
+        std::cerr << "No handler to handle request to " << req->uri() << std::endl;
         resp.SetStatus(Response::code_404_not_found);
         resp.SetBody("404 Not Found");
     }
+
+    handler->HandleRequest(*req, &resp);
 
     return resp.ToString();
 }
