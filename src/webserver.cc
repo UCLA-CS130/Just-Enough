@@ -37,9 +37,9 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
         std::cerr << "No handler to handle request to " << req->uri() << std::endl;
         resp.SetStatus(Response::code_404_not_found);
         resp.SetBody("404 Not Found");
+    } else {
+        handler->HandleRequest(*req, &resp);
     }
-
-    handler->HandleRequest(*req, &resp);
 
     return resp.ToString();
 }
