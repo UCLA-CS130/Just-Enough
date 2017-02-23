@@ -10,14 +10,9 @@
 
 using boost::asio::ip::tcp;
 
-std::string Webserver::processRawRequest(std::string& reqStr) {
-    auto req = Request::Parse(reqStr);
-    Response resp;
-
-    bool handled = false;
-
+RequestHandler* Webserver::matchRequestWithHandler(const Request& req) {
     // TODO(evan): stop using brute force prefix matching
-    std::string prefix = req->uri();
+    std::string prefix = req.uri();
     for (int prefixSize = prefix.size(); prefixSize > 0; prefixSize--) {
         prefix.resize(prefixSize);
 
@@ -27,17 +22,25 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
             RequestHandler* handler = match->second;
             std::cout << " > matched '" << handler << "'" << std::endl;
 
-            handled = true;
-            handler->HandleRequest(*req, &resp);
-            break;
+            return handler;
         }
     }
+    return nullptr;
+}
 
-    if ( ! handled) {
+std::string Webserver::processRawRequest(std::string& reqStr) {
+    auto req = Request::Parse(reqStr);
+    Response resp;
+
+    RequestHandler* handler = matchRequestWithHandler(*req);
+
+    if ( ! handler) {
         std::cerr << "No handler to handle request to " << req->uri() << std::endl;
         resp.SetStatus(Response::code_404_not_found);
         resp.SetBody("404 Not Found");
     }
+
+    handler->HandleRequest(*req, &resp);
 
     return resp.ToString();
 }

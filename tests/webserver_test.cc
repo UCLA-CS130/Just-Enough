@@ -107,3 +107,132 @@ TEST(WebserverTest, processConnectionTest) {
     webserver.processConnection(socket);
 }
 
+TEST(WebserverTest, matcheRequestWithHandler) {
+    Options opts;
+    opts.port = 8080;
+    RequestHandler* handler = new EchoHandler();
+    std::string uri = "/";
+    NginxConfig config;
+    handler->Init(uri, config);
+    opts.handlerMap[uri] = handler;
+    Webserver ws(&opts);
+
+    std::string reqStr = (
+            "GET / HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "Host: localhost:8080\r\n"
+            "\r\n"
+            );
+    auto req = Request::Parse(reqStr);
+
+    RequestHandler* foundhandler = ws.matchRequestWithHandler(*req);
+    EXPECT_EQ(foundhandler, handler);
+}
+
+class WebserverMatcherTest : public ::testing::Test {
+    protected:
+        // given an array of path prefix to RequestHandler*, initialize a webserver instance
+        virtual bool createServerFromHandlers(std::vector<std::pair<std::string, RequestHandler*>> handlers) {
+            opts_ = new Options();
+            opts_->port = 8080;
+            NginxConfig config;
+            for (auto& h : handlers) {
+                h.second->Init(h.first, config);
+                opts_->handlerMap[h.first] = h.second;
+            }
+            ws_ = new Webserver(opts_);
+        }
+
+        virtual void Teardown() {
+            delete ws_;
+            delete opts_;
+        }
+
+        Options* opts_;
+        Webserver* ws_;
+};
+
+TEST_F(WebserverMatcherTest, basic_matchRequestWithHandler) {
+    RequestHandler* h1 = new EchoHandler();
+    createServerFromHandlers({
+            {"/foo", h1},
+            });
+
+    auto req = Request::Parse(
+            "GET /foo/bar HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "Host: localhost:8080\r\n"
+            "\r\n"
+            );
+    RequestHandler* foundhandler = ws_->matchRequestWithHandler(*req);
+    EXPECT_EQ(foundhandler, h1);
+
+    delete h1;
+}
+
+TEST_F(WebserverMatcherTest, multiple_matchRequestWithHandler) {
+    RequestHandler* h1 = new EchoHandler();
+    RequestHandler* h2 = new EchoHandler();
+    createServerFromHandlers({
+            {"/foo", h1},
+            {"/baz", h2},
+            });
+
+    auto req = Request::Parse(
+            "GET /foo/bar HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "Host: localhost:8080\r\n"
+            "\r\n"
+            );
+    RequestHandler* foundhandler = ws_->matchRequestWithHandler(*req);
+    EXPECT_EQ(foundhandler, h1);
+
+    delete h1;
+    delete h2;
+}
+
+TEST_F(WebserverMatcherTest, notfound_matchRequestWithHandler) {
+    RequestHandler* h1 = new EchoHandler();
+    RequestHandler* h2 = new EchoHandler();
+    createServerFromHandlers({
+            {"/foo", h1},
+            {"/baz", h2},
+            });
+
+    auto req = Request::Parse(
+            "GET / HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "Host: localhost:8080\r\n"
+            "\r\n"
+            );
+    RequestHandler* foundhandler = ws_->matchRequestWithHandler(*req);
+    EXPECT_EQ(foundhandler, nullptr);
+
+    delete h1;
+    delete h2;
+}
+
+TEST_F(WebserverMatcherTest, conflict_matchRequestWithHandler) {
+    RequestHandler* h1 = new EchoHandler();
+    RequestHandler* h2 = new EchoHandler();
+    RequestHandler* h3 = new EchoHandler();
+    createServerFromHandlers({
+            {"/foo", h1},
+            {"/foo/bar/baz", h3},
+            {"/foo/bar", h2},
+            });
+
+    auto req = Request::Parse(
+            "GET /foo/bar/baz/bop HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "Host: localhost:8080\r\n"
+            "\r\n"
+            );
+    RequestHandler* foundhandler = ws_->matchRequestWithHandler(*req);
+    EXPECT_EQ(foundhandler, h3);
+
+    delete h1;
+    delete h2;
+    delete h3;
+}
+

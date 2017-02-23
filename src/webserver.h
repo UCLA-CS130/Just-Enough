@@ -1,6 +1,7 @@
 #pragma once
 #include <boost/asio.hpp>
 #include "options.h"
+#include "request_handler.h"
 
 class Webserver {
     public:
@@ -17,6 +18,7 @@ class Webserver {
         virtual void processConnection(boost::asio::ip::tcp::socket& socket);
         virtual std::string processRawRequest(std::string& reqStr);
         virtual void writeResponseString(boost::asio::ip::tcp::socket& socket, const std::string& s);
+        virtual RequestHandler* matchRequestWithHandler(const Request& req);
 
     private:
         boost::asio::io_service io_service_;
