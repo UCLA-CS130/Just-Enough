@@ -55,8 +55,14 @@ bool Options::addHandler(std::shared_ptr<NginxConfigStatement> handler_config) {
         return false;
     }
 
+    // handler is owned by Options
     RequestHandler* handler = RequestHandler::CreateByName(typeParam->second.c_str());
     if ( ! handler) {
+        return false;
+    }
+    RequestHandler::Status status = handler->Init(pathParam->second, *handler_config->child_block_);
+    if (status != RequestHandler::OK) {
+        delete handler;
         return false;
     }
 
@@ -183,5 +189,9 @@ Options::~Options() {
     std::vector<Module*>::iterator it;
     for (it = modules.begin(); it != modules.end(); it++) {
         delete *it;
+    }
+    // free allocated handlers
+    for (auto& h: handlerMap) {
+        delete h.second;
     }
 }

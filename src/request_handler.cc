@@ -2,7 +2,6 @@
 #include "echo_handler.h"
 #include <cstring>
 
-
 RequestHandler* RequestHandler::CreateByName(const char* type) {
     // TODO(evan): use static registeration
     std::string typeStr(type, std::strlen(type));

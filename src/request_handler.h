@@ -93,5 +93,7 @@ class RequestHandler {
                 Response* response) = 0;
 
         static RequestHandler* CreateByName(const char* type);
+
+        virtual ~RequestHandler() = default;
 };
 

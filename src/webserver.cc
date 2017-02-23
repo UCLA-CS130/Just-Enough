@@ -3,13 +3,12 @@
 #include <iostream>
 #include <boost/system/error_code.hpp>
 
-//#include "http_request.h"
-//#include "http_response.h"
 #include "request_handler.h"
 #include "webserver.h"
 
 using boost::asio::ip::tcp;
 
+// perform longest prefix matching and return matching handler, or nullptr
 RequestHandler* Webserver::matchRequestWithHandler(const Request& req) {
     // TODO(evan): stop using brute force prefix matching
     std::string prefix = req.uri();

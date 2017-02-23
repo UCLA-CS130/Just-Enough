@@ -8,4 +8,6 @@ class EchoHandler : public RequestHandler {
 
         virtual Status HandleRequest(const Request& request,
                 Response* response);
+
+        virtual ~EchoHandler() = default;
 };
