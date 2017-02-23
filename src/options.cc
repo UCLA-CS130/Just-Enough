@@ -21,7 +21,7 @@ const int PATH_SIZE = 3;
 bool Options::addHandler(std::shared_ptr<NginxConfigStatement> handler_config) {
     std::shared_ptr<stringMap> params = std::make_shared<stringMap>();
 
-    if(handler_config->tokens_.size() != PATH_SIZE) {
+    if (handler_config->tokens_.size() != 3) {
         std::cerr << "Not a valid path statement. Need " << PATH_SIZE << " tokens.\n";
         return false;
     }
@@ -30,10 +30,10 @@ bool Options::addHandler(std::shared_ptr<NginxConfigStatement> handler_config) {
     string type = handler_config->tokens_[HANDLER];
     string path = handler_config->tokens_[VAL];
 
-    for(size_t i = 0; i < handler_config->child_block_->statements_.size(); i++) {
+    for (size_t i = 0; i < handler_config->child_block_->statements_.size(); i++) {
 
         // For now, not allowed to go into another module/server within a module
-        if(handler_config->child_block_->statements_[i]->tokens_.size() != STATEMENT_SIZE) {
+        if (handler_config->child_block_->statements_[i]->tokens_.size() != STATEMENT_SIZE) {
             std::cerr << "Not a valid handler statement. Need " << STATEMENT_SIZE << " tokens.\n";
             return false;
         }
@@ -66,13 +66,13 @@ bool Options::addHandler(std::shared_ptr<NginxConfigStatement> handler_config) {
 }
 
 bool Options::addPort(std::shared_ptr<NginxConfigStatement> port_config) {
-    if(port_config->tokens_.size() != STATEMENT_SIZE) {
+    if (port_config->tokens_.size() != STATEMENT_SIZE) {
         std::cerr << "Incorrect number of tokens. (For port)\n";
         return false;
     }
 
     string port = port_config->tokens_[VAL];
-    if((unsigned int) std::stoi(port) > MAX_PORT || (unsigned int) std::stoi(port) < MIN_PORT) {
+    if ((unsigned int) std::stoi(port) > MAX_PORT || (unsigned int) std::stoi(port) < MIN_PORT) {
         std::cerr << "Invalid port number.\n";
         return false;
     }
@@ -84,7 +84,7 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
 
     NginxConfigParser parser;
     NginxConfig config;
-    if(parser.Parse(config_file, &config) == false) {
+    if (parser.Parse(config_file, &config) == false) {
         return false;
     }
 
@@ -93,22 +93,23 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
         std::shared_ptr<NginxConfigStatement> temp_config = config.statements_[i];
 
         // Sets port.
-        if(temp_config->tokens_[KEY] == "port") {
-            if(issetPort) {
+        if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "port") {
+            if (issetPort) {
                 std::cerr << "Multiple ports in config file.\n";
                 return false;
             } else {
                 issetPort = addPort(temp_config);
-                if(!issetPort) {
+                if ( ! issetPort) {
                     return false;
                 }
             }
         } 
 
         // Sets handler.
-        else if (temp_config->tokens_[KEY] == "path") { 
-            if(addHandler(temp_config) == false) {
+        else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "path") { 
+            if (addHandler(temp_config) == false) {
                 std::cerr << "Failed to add handler.\n";
+                return false;
             }
         } 
 
@@ -118,7 +119,12 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
             return false;
         }
     }
-        
+    
+    if ( ! issetPort) {
+        std::cerr << "A port was not specified.\n";
+        return false;
+    }
+
     return true;
 }
 
@@ -126,7 +132,7 @@ bool Options::loadOptionsFromFile(const char* filename) {
     //TODO: Does parse return error for bad filename
     std::ifstream config_file;
     config_file.open(filename);
-    if (!config_file.good()) {
+    if ( ! config_file.good()) {
         std::cerr << "Failed to open config file.\n";
         return false;
     }
