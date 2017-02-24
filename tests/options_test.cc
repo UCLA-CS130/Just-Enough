@@ -22,7 +22,7 @@ TEST(OptionsLoadStreamPortTest, BoundaryCases) {
 }
 
 TEST(OptionsLoadStreamPortTest, NoPort) {
-	std::stringstream port("path / echo {}");
+	std::stringstream port("path / EchoHandler {}");
 
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
@@ -30,6 +30,13 @@ TEST(OptionsLoadStreamPortTest, NoPort) {
 
 TEST(OptionsLoadStreamPortTest, BadNoPort) {
 	std::stringstream port("port;");
+
+	Options opt;
+	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
+}
+
+TEST(OptionsLoadStreamPortTest, PortExtraTokens) {
+	std::stringstream port("port 8080 8080;");
 
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
@@ -77,3 +84,43 @@ TEST(OptionsLoadStreamHandTest, NotValidType) {
 	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
 }
 
+TEST(OptionsLoadStreamHandTest, NotValidDefaultStatement) {
+	std::stringstream mod("port 8080; default too much {}");
+
+	Options opt;
+	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
+}
+
+TEST(OptionsLoadStreamHandTest, NotValidDefaultHandler) {
+	std::stringstream mod("port 8080; default NotARealHandlerType {}");
+
+	Options opt;
+	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
+}
+
+TEST(OptionsLoadStreamHandTest, DefaultHandlerLoads) {
+	std::stringstream mod(
+	        "port 8080;"
+	        "default EchoHandler {}"
+	        );
+
+	Options opt;
+	EXPECT_TRUE(opt.loadOptionsFromStream(&mod));
+
+	ASSERT_NE(opt.defaultHandler, nullptr);
+	//TODO(evan): add type() method to handlers
+	//EXPECT_EQ(opt.defaultHandler->type(), "EchoHandler");
+}
+
+TEST(OptionsLoadStreamHandTest, MissingDefault) {
+	std::stringstream mod(
+	        "port 8080;"
+	        );
+
+	Options opt;
+	EXPECT_TRUE(opt.loadOptionsFromStream(&mod));
+
+	ASSERT_NE(opt.defaultHandler, nullptr);
+	//TODO(evan): add type() method to handlers
+	//EXPECT_EQ(opt.defaultHandler->type(), "NotFoundHandler");
+}

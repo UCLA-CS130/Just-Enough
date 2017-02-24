@@ -140,6 +140,7 @@ class WebserverMatcherTest : public ::testing::Test {
                 h.second->Init(h.first, config);
                 opts_->handlerMap[h.first] = h.second;
             }
+            opts_->defaultHandler = nullptr;
             ws_ = new Webserver(opts_);
         }
 
