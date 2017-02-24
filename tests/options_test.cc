@@ -53,14 +53,15 @@ TEST(OptionsLoadFileTest, ASimpleFile) {
 }
 
 //HANDLERS TESTS
-/*TEST(OptionsLoadStreamHandTest, WorkingSimpleCase) {
+TEST(OptionsLoadStreamHandTest, WorkingSimpleCase) {
 	std::stringstream mod("port 8080; path /echo EchoHandler {}");
-	std::stringstream mod2("port 8080; path / StaticHandler { root /foo/bar; }");
+	// TODO: re-enable once StaticHandler is re-implemented
+	//std::stringstream mod2("port 8080; path / StaticHandler { root /foo/bar; }");
 
 	Options opt;
 	EXPECT_TRUE(opt.loadOptionsFromStream(&mod));
-	EXPECT_TRUE(opt.loadOptionsFromStream(&mod2));
-} */
+	//EXPECT_TRUE(opt.loadOptionsFromStream(&mod2));
+}
 
 TEST(OptionsLoadStreamHandTest, BadStatementSize) {
 	std::stringstream mod("port 8080; path /echo {}");
