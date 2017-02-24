@@ -73,6 +73,22 @@ TEST(MultimapCounterTest, iterateInner) {
     }
 }
 
+TEST(MultimapCounterTest, getKeys) {
+    MultiMapCounter<std::string, int> mm_counter;
+
+    mm_counter.increment("foo", 1);
+    mm_counter.increment("foo", 2);
+    mm_counter.increment("bar", 3);
+    mm_counter.increment("baz", 2);
+
+    auto vec = mm_counter.getKeys();
+    ASSERT_EQ(vec.size(), 3);
+    EXPECT_TRUE(vec[0] == "foo" || vec[1] == "foo" || vec[2] == "foo");
+    EXPECT_TRUE(vec[0] == "bar" || vec[1] == "bar" || vec[2] == "bar");
+    EXPECT_TRUE(vec[0] == "baz" || vec[1] == "baz" || vec[2] == "baz");
+    EXPECT_TRUE(vec[0] != vec[1] && vec[1] != vec[2] && vec[0] != vec[2]);
+}
+
 TEST(MultimapCounterTest, theadedTest) {
     MultiMapCounter<std::string, int> mm_counter;
 
