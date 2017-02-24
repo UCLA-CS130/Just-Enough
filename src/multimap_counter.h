@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <mutex>
+#include <vector>
 
 typedef int counter_t;
 
@@ -32,6 +33,15 @@ class MultiMapCounter {
         counter_t get(A outer_key, B inner_key) {
             std::unique_lock<std::mutex> lck(mtx_);
             return map_[outer_key][inner_key];
+        }
+
+        std::vector<A> getKeys() {
+            std::unique_lock<std::mutex> lck(mtx_);
+            std::vector<A> ret;
+            for (auto key : map_) {
+                ret.push_back(key.first);
+            }
+            return ret;
         }
 
         // return by copy so it will be threadsafe but possibly immediately outdated

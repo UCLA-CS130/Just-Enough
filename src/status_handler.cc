@@ -20,6 +20,18 @@ RequestHandler::Status StatusHandler::HandleRequest(const Request& req, Response
         handlersStr += "<tr><td>" + h.first + "</td><td>" + h.second->type() + "</td></tr>";
     }
 
+    std::string requestCountsStr;
+    auto counters = ws->counters();
+    for (auto k : counters->getKeys()) {
+        std::cout << " > " << k << std::endl;
+        requestCountsStr += "<ul><h3>" + k + "</h3>";
+        for (auto c : counters->iterateKey(k)) {
+            std::cout << "    - " << c.first << " = " << c.second << std::endl;
+            requestCountsStr += "<li>" + std::to_string((int)c.first) + " : " + std::to_string(c.second) + "</li>";
+        }
+        requestCountsStr += "</ul>";
+    }
+
     std::string html = (
             "<html>"
             "  <body>"
@@ -29,6 +41,7 @@ RequestHandler::Status StatusHandler::HandleRequest(const Request& req, Response
             "      <tr><th>Path</th><th>Handler Type</th></tr>"
             + handlersStr +
             "    </table>"
+            + requestCountsStr +
             "  <body>"
             "</html>"
             );
