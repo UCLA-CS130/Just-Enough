@@ -22,7 +22,7 @@ TEST(OptionsLoadStreamPortTest, BoundaryCases) {
 }
 
 TEST(OptionsLoadStreamPortTest, NoPort) {
-	std::stringstream port("path / EchoHandler {}");
+	std::stringstream port("path / echo {}");
 
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
@@ -70,7 +70,7 @@ TEST(OptionsLoadStreamHandTest, BadStatementSize) {
 }
 
 TEST(OptionsLoadStreamHandTest, NotValidType) {
-	std::stringstream mod("port 8080; module EchoHandler {}");
+	std::stringstream mod("port 8080; path / NotARealHandlerType {}");
 
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
