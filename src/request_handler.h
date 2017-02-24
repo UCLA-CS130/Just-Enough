@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "config_parser.h"
+#include "register_handler.h"
 
 
 // For the Request and Response classes, you need to implement the methods
@@ -96,4 +97,7 @@ class RequestHandler {
 
         virtual ~RequestHandler() = default;
 };
+
+#define REGISTER_REQUEST_HANDLER(ClassName) \
+  static RequestHandlerRegisterer<ClassName> ClassName##__registerer(#ClassName)
 

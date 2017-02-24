@@ -3,12 +3,13 @@
 #include <cstring>
 
 RequestHandler* RequestHandler::CreateByName(const char* type) {
-    // TODO(evan): use static registeration
-    std::string typeStr(type, std::strlen(type));
-    if (typeStr == "EchoHandler") {
-        return new EchoHandler();
-    } else {
-        std::cerr << "Unknown handler name '" << typeStr << "'" << std::endl;
+    if ( ! request_handler_builders) {
+        std::cerr << "No Request Handlers registered!" << std::endl;
+    }
+    const auto type_and_builder = request_handler_builders->find(type);
+    if (type_and_builder == request_handler_builders->end()) {
+        std::cerr << "handler type '" << type << "' not registered." << std::endl;
         return nullptr;
     }
+    return (*type_and_builder->second)();
 }

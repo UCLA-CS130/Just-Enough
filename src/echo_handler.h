@@ -11,3 +11,5 @@ class EchoHandler : public RequestHandler {
 
         virtual ~EchoHandler() = default;
 };
+
+REGISTER_REQUEST_HANDLER(EchoHandler);
