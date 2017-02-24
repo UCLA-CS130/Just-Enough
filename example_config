@@ -1,13 +1,13 @@
-server {
-	port =  8080;
-	module {
-		type = echo;
-		path = /echo;
-	}
-	module {
-		type = static;
-		path = /static;
-		filebase = "testFiles1";
-	}
+# This is a comment.
+
+port 8080; # This is also a comment.
+
+path / StaticHandler {
+	root /foo/bar;	
 }
+
+path /echo EchoHandler {
+	
+}
+
 

@@ -5,7 +5,7 @@
 RequestHandler* RequestHandler::CreateByName(const char* type) {
     // TODO(evan): use static registeration
     std::string typeStr(type, std::strlen(type));
-    if (typeStr == "echo") {
+    if (typeStr == "EchoHandler") {
         return new EchoHandler();
     } else {
         std::cerr << "Unknown handler name '" << typeStr << "'" << std::endl;

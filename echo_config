@@ -1,11 +1,9 @@
-server {
-    listen 8080;
-    module {
-        type = echo;
-        path = /echo;
-    }
-    module {
-        type = echo;
-        path = /test/Echo;
-    }
+port 8080;
+
+path /echo EchoHandler {
+	
+}
+
+path /test/Echo EchoHandler {
+	
 }

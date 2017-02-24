@@ -4,12 +4,12 @@
 
 // PORT TESTS
 TEST(OptionsLoadStreamPortTest, BoundaryCases) {
-	std::stringstream port0("server { port = 0;}");
-	std::stringstream port1023("server { port = 1023;}");
-	std::stringstream port1024("server { port = 1024;}");
-	std::stringstream port8080("server { port = 8080;}");
-	std::stringstream port65535("server { port = 65535;}");
-	std::stringstream port65545("server { port = 65545;}");
+	std::stringstream port0("port 0;");
+	std::stringstream port1023("port 1023;");
+	std::stringstream port1024("port 1024;");
+	std::stringstream port8080("port 8080;");
+	std::stringstream port65535("port 65535;");
+	std::stringstream port65545("port 65545;");
 
 	Options opt;
 
@@ -22,28 +22,21 @@ TEST(OptionsLoadStreamPortTest, BoundaryCases) {
 }
 
 TEST(OptionsLoadStreamPortTest, NoPort) {
-	std::stringstream port("server {}");
+	std::stringstream port("path / echo {}");
 
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
 }
 
 TEST(OptionsLoadStreamPortTest, BadNoPort) {
-	std::stringstream port("server {port;}");
-
-	Options opt;
-	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
-}
-
-TEST(OptionsLoadStreamPortTest, BadNoEQ) {
-	std::stringstream port("server {port port 8080;}");
+	std::stringstream port("port;");
 
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
 }
 
 TEST(OptionsLoadStreamPortTest, MultiplePorts) {
-	std::stringstream port("server { port = 8080; port = 54545; }");
+	std::stringstream port("port 8080; port 54545;");
 	
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&port));
@@ -59,47 +52,28 @@ TEST(OptionsLoadFileTest, ASimpleFile) {
 	EXPECT_TRUE(opt.loadOptionsFromFile("test_config"));
 }
 
-//MODULES TESTS
-TEST(OptionsLoadStreamModTest, WorkingSimpleCase) {
-	std::stringstream mod("server { module { type = echo; path = \"/testFiles1\"; }}");
+//HANDLERS TESTS
+TEST(OptionsLoadStreamHandTest, WorkingSimpleCase) {
+	std::stringstream mod("port 8080; path /echo EchoHandler {}");
+	// TODO: re-enable once StaticHandler is re-implemented
+	//std::stringstream mod2("port 8080; path / StaticHandler { root /foo/bar; }");
 
 	Options opt;
 	EXPECT_TRUE(opt.loadOptionsFromStream(&mod));
+	//EXPECT_TRUE(opt.loadOptionsFromStream(&mod2));
 }
 
-TEST(OptionsLoadStreamModTest, BadStatementSize) {
-	std::stringstream mod("server { module { = echo; } }");
+TEST(OptionsLoadStreamHandTest, BadStatementSize) {
+	std::stringstream mod("port 8080; path /echo {}");
 
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
 }
 
-TEST(OptionsLoadStreamModTest, NoEquals) {
-	std::stringstream mod("server { module { type type echo; } }");
+TEST(OptionsLoadStreamHandTest, NotValidType) {
+	std::stringstream mod("port 8080; path / NotARealHandlerType {}");
 
 	Options opt;
 	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
-}
-
-TEST(OptionsLoadStreamModTest, NotValidType) {
-	std::stringstream mod("server { module { type = shouldfail; } }");
-
-	Options opt;
-	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
-}
-
-//OTHERS
-TEST(OptionsLoadStreamTest, NotValidType) {
-	std::stringstream mod("server { container { type = shouldfail; } }");
-
-	Options opt;
-	EXPECT_FALSE(opt.loadOptionsFromStream(&mod));
-}
-
-TEST(OptionsLoadModule, QuotedParams) {
-	std::stringstream mod("server { module { type = static; path = \"some path\"; filebase = \"testFiles1\";} }");
-
-	Options opt;
-	EXPECT_TRUE(opt.loadOptionsFromStream(&mod));
 }
 
