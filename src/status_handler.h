@@ -10,4 +10,8 @@ class StatusHandler : public RequestHandler {
                 Response* response);
 
         virtual ~StatusHandler() = default;
+
+        virtual std::string type() const {
+            return "StatusHandler";
+        }
 };

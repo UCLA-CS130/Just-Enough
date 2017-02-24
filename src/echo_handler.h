@@ -10,6 +10,10 @@ class EchoHandler : public RequestHandler {
                 Response* response);
 
         virtual ~EchoHandler() = default;
+
+        virtual std::string type() const {
+            return "EchoHandler";
+        }
 };
 
 REGISTER_REQUEST_HANDLER(EchoHandler);

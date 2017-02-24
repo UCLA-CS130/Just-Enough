@@ -96,6 +96,9 @@ class RequestHandler {
         static RequestHandler* CreateByName(const char* type);
 
         virtual ~RequestHandler() = default;
+
+        // get type of request handler
+        virtual std::string type() const = 0;
 };
 
 #define REGISTER_REQUEST_HANDLER(ClassName) \
