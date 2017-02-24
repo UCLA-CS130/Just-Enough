@@ -77,6 +77,7 @@ class RequestHandler {
     public:
         enum Status {
             OK = 0,
+            Error,
         };
 
         // Initializes the handler. Returns a response code indicating success or
