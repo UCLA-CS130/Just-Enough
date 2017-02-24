@@ -14,10 +14,21 @@ RequestHandler::Status StatusHandler::HandleRequest(const Request& req, Response
         return RequestHandler::Error;
     }
 
+    auto opt = ws->options();
+    std::string handlersStr;
+    for (auto h : opt->handlerMap) {
+        handlersStr += "<tr><td>" + h.first + "</td><td>" + h.second->type() + "</td></tr>";
+    }
+
     std::string html = (
             "<html>"
             "  <body>"
-            "    Webserver Status"
+            "    <h1>Webserver Status</h1>"
+            "    <h2>Registered handlers:</h2>"
+            "    <table style=\"font-family: monospace\">"
+            "      <tr><th>Path</th><th>Handler Type</th></tr>"
+            + handlersStr +
+            "    </table>"
             "  <body>"
             "</html>"
             );

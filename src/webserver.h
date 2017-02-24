@@ -24,8 +24,8 @@ class Webserver {
         virtual void writeResponseString(boost::asio::ip::tcp::socket& socket, const std::string& s);
         virtual RequestHandler* matchRequestWithHandler(const Request& req);
 
-        virtual std::map<std::string, RequestHandler*>* handlers() const {
-            return &opt_->handlerMap;
+        virtual Options* options() const {
+            return opt_;
         }
 
     private:
