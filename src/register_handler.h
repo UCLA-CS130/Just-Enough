@@ -4,8 +4,10 @@
 #include <string>
 
 class RequestHandler; // forward declaration
+// this map enables RequestHandler::CreateByName
 extern std::map<std::string, RequestHandler* (*)(void)>* request_handler_builders;
 
+// REGISTER_REQUEST_HANDLER constructs this to statically add new handlers to map
 template<typename T>
 class RequestHandlerRegisterer {
     public:
