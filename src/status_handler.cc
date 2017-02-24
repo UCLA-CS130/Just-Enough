@@ -23,25 +23,49 @@ RequestHandler::Status StatusHandler::HandleRequest(const Request& req, Response
     std::string requestCountsStr;
     auto counters = ws->counters();
     for (auto k : counters->getKeys()) {
-        std::cout << " > " << k << std::endl;
-        requestCountsStr += "<ul><h3>" + k + "</h3>";
+        bool first = true;
         for (auto c : counters->iterateKey(k)) {
-            std::cout << "    - " << c.first << " = " << c.second << std::endl;
-            requestCountsStr += "<li>" + std::to_string((int)c.first) + " : " + std::to_string(c.second) + "</li>";
+            requestCountsStr += first ? "<tr class=\"overline\">" : "<tr>";
+            requestCountsStr += "<td>" + k + "</td>";
+            requestCountsStr += "<td>" + std::to_string((int)c.first) + "</td>";
+            requestCountsStr += "<td>" + std::to_string(c.second) + "</td>";
+            requestCountsStr += "</tr>";
+            first = false;
         }
-        requestCountsStr += "</ul>";
     }
 
     std::string html = (
             "<html>"
+            "  <head>"
+            "  <style>"
+            "  table {"
+            "    font-family: monospace;"
+            "    border: 1px solid #777;"
+            "    border-collapse: collapse"
+            "  }"
+            "  td {"
+            "    padding: 4px 20px;"
+            "  }"
+            "  .underline {"
+            "    border-bottom: 1px solid #777;"
+            "  }"
+            "  .overline {"
+            "    border-top: 1px solid #777;"
+            "  }"
+            "  </style>"
+            "  </head>"
             "  <body>"
             "    <h1>Webserver Status</h1>"
             "    <h2>Registered handlers:</h2>"
-            "    <table style=\"font-family: monospace\">"
-            "      <tr><th>Path</th><th>Handler Type</th></tr>"
+            "    <table>"
+            "      <tr class=\"underline\"><th>Path</th><th>Handler Type</th></tr>"
             + handlersStr +
             "    </table>"
+            "    <h2>Requests:</h2>"
+            "    <table>"
+            "      <tr class=\"underline\"><th>Path</th><th>Response Code</th><th>Count</th></tr>"
             + requestCountsStr +
+            "    </table>"
             "  <body>"
             "</html>"
             );
