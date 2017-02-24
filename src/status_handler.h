@@ -1,7 +1,7 @@
 #pragma once
 #include "request_handler.h"
 
-class EchoHandler : public RequestHandler {
+class StatusHandler : public RequestHandler {
     public:
         virtual Status Init(const std::string& uri_prefix,
                 const NginxConfig& config);
@@ -9,11 +9,11 @@ class EchoHandler : public RequestHandler {
         virtual Status HandleRequest(const Request& request,
                 Response* response);
 
-        virtual ~EchoHandler() = default;
+        virtual ~StatusHandler() = default;
 
         virtual std::string type() const {
-            return "EchoHandler";
+            return "StatusHandler";
         }
 };
 
-REGISTER_REQUEST_HANDLER(EchoHandler);
+REGISTER_REQUEST_HANDLER(StatusHandler);

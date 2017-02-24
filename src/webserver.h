@@ -5,6 +5,10 @@
 
 class Webserver {
     public:
+        // faux singleton: Webserver::instance stores the most recently constructed webserver.
+        // Multiple webserver instances are allowed, but handlers that rely on global status will see the most recent.
+        static Webserver* instance;
+
         Webserver(Options* opt);
         virtual void run();
 
@@ -19,6 +23,10 @@ class Webserver {
         virtual std::string processRawRequest(std::string& reqStr);
         virtual void writeResponseString(boost::asio::ip::tcp::socket& socket, const std::string& s);
         virtual RequestHandler* matchRequestWithHandler(const Request& req);
+
+        virtual Options* options() const {
+            return opt_;
+        }
 
     private:
         boost::asio::io_service io_service_;

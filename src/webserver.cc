@@ -113,6 +113,9 @@ void Webserver::run() {
     }
 }
 
+Webserver* Webserver::instance = nullptr;
 Webserver::Webserver(Options* opt)
 : opt_(opt)
-{ }
+{
+    Webserver::instance = this;
+}
