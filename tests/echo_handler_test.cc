@@ -10,7 +10,7 @@ using std::string;
 using ::testing::HasSubstr;
 
 TEST(RequestHandlerTest, createEchoHandler) {
-    std::unique_ptr<RequestHandler> handler(RequestHandler::CreateByName("echo"));
+    std::unique_ptr<RequestHandler> handler(RequestHandler::CreateByName("EchoHandler"));
     ASSERT_NE(handler, nullptr);
 
     NginxConfig config;
