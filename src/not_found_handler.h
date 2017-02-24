@@ -10,6 +10,10 @@ class NotFoundHandler : public RequestHandler {
                 Response* response);
 
         virtual ~NotFoundHandler() = default;
+
+        virtual std::string type() const {
+            return "NotFoundHandler";
+        }
 };
 
 REGISTER_REQUEST_HANDLER(NotFoundHandler);
