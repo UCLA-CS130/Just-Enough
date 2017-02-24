@@ -8,7 +8,7 @@
 
 using boost::asio::ip::tcp;
 
-// perform longest prefix matching and return matching handler, or nullptr
+// perform longest prefix matching and return matching handler, or default handler
 RequestHandler* Webserver::matchRequestWithHandler(const Request& req) {
     // TODO(evan): stop using brute force prefix matching
     std::string prefix = req.uri();
@@ -24,7 +24,8 @@ RequestHandler* Webserver::matchRequestWithHandler(const Request& req) {
             return handler;
         }
     }
-    return nullptr;
+    std::cout << "using default handler for " << req.uri() << "\n";
+    return opt_->defaultHandler;
 }
 
 std::string Webserver::processRawRequest(std::string& reqStr) {
@@ -32,13 +33,6 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
     Response resp;
 
     RequestHandler* handler = matchRequestWithHandler(*req);
-
-    if ( ! handler) {
-        std::cerr << "No handler to handle request to " << req->uri() << std::endl;
-        resp.SetStatus(Response::code_404_not_found);
-        resp.SetBody("404 Not Found");
-    } else {
-    }
 
     handler->HandleRequest(*req, &resp);
 
