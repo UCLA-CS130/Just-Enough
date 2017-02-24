@@ -18,7 +18,8 @@
 
 ## Running:
 run `./webserver example_config` to run using `example_config`. We recommend you create local config files
-to test with that are not added to source control. `example_config` we try to have as a simple basic config example.
+to test with that are not added to source control.
+In `example_config` we try to have as a simple basic config example that is working and valid.
 
 ## File Layout:
 All server source code is located in the `src` directory.
@@ -31,7 +32,7 @@ Please try to keep test coverage ~90% when possible.
 `Webserver` (webserver.h) handles making connections and handling requests.
 One instance is created when the server is started. It is not enforced as a singleton,
 but we only use one instance and assume so in some places.
-However, the most recently constructed instance can be globally found using Webserver::instance,
+The most recently constructed instance (essentially a singleton) can be globally found using Webserver::instance,
 as needed for e.g. the StatusHandler.
 
 `Options` (options.h) is in charge of making sense of the config file.
@@ -43,4 +44,7 @@ and a static `CreateByName` to statically register handlers.
 To add a new handler, use the `REGISTER_REQUEST_HANDLER` macro with the classname.
 
 `Request` and `Response` (also in request_handler.h) are similar to the given API. Refer to the header to see changes.
+These are defined in request.cc and response.cc.
+
+Some string processing utilities exist in `utils.h`.
 
