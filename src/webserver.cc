@@ -38,6 +38,8 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
 
     counters_.increment(req->uri(), resp.status());
 
+    counters_.increment(req->uri(), resp.status());
+
     return resp.ToString();
 }
 
