@@ -23,13 +23,13 @@ def getPathInProject(*path):
 
 RED_ESCAPE = '\033[31m'
 GREEN_ESCAPE = '\033[32m'
-CLR_ESACPE = '\033[0m'
+CLR_ESCAPE = '\033[0m'
 
 def die(error):
     """ test apparatus failed entirely...
         print error and exit
     """
-    print("%s%s%s" % (RED_ESCAPE, error, CLR_ESACPE))
+    print("%s%s%s" % (RED_ESCAPE, error, CLR_ESCAPE))
     sys.exit(1)
 
 def buildBinary():
@@ -38,13 +38,19 @@ def buildBinary():
     if buildProcess.returncode != 0:
         die("build failed")
 
-def makeModuleString(m): #dictionary cotaining all values
-    modString = 'module {\n'
-    for key, value in m.items():
-        modString += key + ' = ' + value + '; \n'
-    modString += '\n}'
-    return modString
+def makeHandlerString(uri, name, l): # l: list of config for handler
+    handlerString = 'path %s %s {\n' % (uri, name)
+    for s in l:
+        handlerString += s + ';\n'
+    handlerString += '\n}'
+    return handlerString
 
+def makeDefaultHandlerString(name, l): # l: list of config for handler
+    handlerString = 'default %s {\n' % (name)
+    for s in l:
+        handlerString += s + ';\n'
+    handlerString += '\n}'
+    return handlerString
 
 
 class TemporaryConfigFile:
@@ -53,13 +59,17 @@ class TemporaryConfigFile:
         self.config = config
 
     def __enter__(self):
-        modStrings = [makeModuleString(m) for m in self.config['modules']]
+        handlerStrings = [makeHandlerString(uri, name, l) for (uri,name,l) in self.config['handlers']]
+        if 'default' in self.config:
+            defaultHandlerString = makeDefaultHandlerString(self.config['default'][0], self.config['default'][1])
+        else:
+            defaultHandlerString = ''
+
         cnfg = (
-                'server {\n'
-                '    port = %d;\n'
-                '    %s           '
-                '}\n'
-                % (self.config['port'], '\n'.join(modStrings))
+                'port %d;\n'
+                '%s\n'
+                '%s\n'
+                % (self.config['port'], '\n'.join(handlerStrings), defaultHandlerString)
                 )
 
         if SHOW_GENERATED_CONFIG_INLINE:
@@ -149,10 +159,10 @@ class Test:
         config = {
                 'filename': 'temp_config',
                 'port': 8080,
-                'modules': [
-                            {'type': 'echo', 'path': '/echo'},
-                            {'type':'static', 'path':'/static', 'filebase':'testFiles1'}
-                           ],
+                'handlers': [
+                    ('/echo', 'EchoHandler', []),
+                    ('/static', 'StaticHandler', ['root testFiles1']),
+                    ],
                 }
 
         with TemporaryConfigFile(config) as filepath:
@@ -182,15 +192,69 @@ class Test:
 
                 return Test.PASS
 
+    def test_not_found():
+        """ test the NotFound handler
+        """
+        config = {
+                'filename': 'temp_config',
+                'port': 8080,
+                'handlers': [
+                    ('/badness', 'NotFoundHandler', []),
+                    ('/ba', 'EchoHandler', []),
+                    ],
+                }
+
+        with TemporaryConfigFile(config) as filepath:
+            with WebserverRunningContext(filepath):
+                code, content = makeWebserverRequest(config, '/ba')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+
+                code, content = makeWebserverRequest(config, '/badness')
+                if not code: return "request failed"
+                if code != 404:
+                    return "expected 404 Not Found, but got: " + str(code) + ": " + content
+
+                return Test.PASS
+
+    def test_default():
+        """ test the default handler
+        """
+        config = {
+                'filename': 'temp_config',
+                'port': 8080,
+                'handlers': [
+                    ('/bad', 'NotFoundHandler', []),
+                    ('/echo', 'EchoHandler', []),
+                    ],
+                'default': ('EchoHandler', []),
+                }
+
+        with TemporaryConfigFile(config) as filepath:
+            with WebserverRunningContext(filepath):
+                code, content = makeWebserverRequest(config, '/ba')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+
+                code, content = makeWebserverRequest(config, '/badness')
+                if not code: return "request failed"
+                if code != 404:
+                    return "expected 404 Not Found, but got: " + str(code) + ": " + content
+
+
+                return Test.PASS
+
     def test_port():
         """ test that server can run on arbitary ports """
         config = {
                 'filename': 'temp_config',
                 'port': 14151,
-                'modules': [
-                            {'type': 'echo', 'path': '/echo'},
-                            {'type':'static', 'path':'/static', 'filebase':'testFiles1'}
-                           ],
+                'handlers': [
+                    ('/echo', 'EchoHandler', []),
+                    ('/static', 'StaticHandler', ['root testFiles1']),
+                    ],
                 }
 
         with TemporaryConfigFile(config) as filepath:
@@ -217,10 +281,10 @@ class Test:
         config = {
                 'filename': 'temp_config',
                 'port': 67536, # note: larger than max port of 65535
-                'modules': [
-                            {'type': 'echo', 'path': '/echo'},
-                            {'type':'static', 'path':'/static', 'filebase':'testFiles1'}
-                           ]
+                'handlers': [
+                    ('/echo', 'EchoHandler', []),
+                    ('/static', 'StaticHandler', ['root testFiles1']),
+                    ]
                 }
 
         with TemporaryConfigFile(config) as filepath:
@@ -232,15 +296,15 @@ class Test:
             return "webserver started unexpectedly when given bad input port"
 
     def test_multiple():
-        """ test that multiple modules work """
+        """ test that multiple handlers work """
 
         config = {
                 'filename': 'temp_config',
                 'port': 8080,
-                'modules': [
-                            {'type': 'echo', 'path': '/echo'},
-                            {'type':'static', 'path':'/static', 'filebase':'testFiles1'}
-                           ],
+                'handlers': [
+                    ('/echo', 'EchoHandler', []),
+                    ('/static', 'StaticHandler', ['root testFiles1']),
+                    ],
                 }
 
         with TemporaryConfigFile(config) as filepath:
@@ -280,7 +344,7 @@ def runTests():
     for test in tests:
         testName = test.__name__
         testInfo = test.__doc__.strip() if test.__doc__ else ''
-        print('[ RUN      ]  %s' % testName)
+        print('%s[ RUN      ]%s  %s' % (GREEN_ESCAPE, CLR_ESCAPE, testName))
         for testInfoLine in testInfo.split('\n'):
             print('              %s' % testInfoLine.strip())
         try:
@@ -288,22 +352,22 @@ def runTests():
         except Exception as e:
             error = str(e)
         if error:
-            print('%s[   FAILED ]%s %s' % (RED_ESCAPE, CLR_ESACPE, testName))
+            print('%s[   FAILED ]%s %s' % (RED_ESCAPE, CLR_ESCAPE, testName))
             for testInfoLine in testInfo.split('\n'):
-                print("%s >>> %s%s" % (RED_ESCAPE, CLR_ESACPE, testInfoLine.strip()))
+                print("%s >>> %s%s" % (RED_ESCAPE, CLR_ESCAPE, testInfoLine.strip()))
             for errorLine in error.split('\n'):
-                print("%s >>> %s%s" % (RED_ESCAPE, CLR_ESACPE, errorLine.strip()))
+                print("%s >>> %s%s" % (RED_ESCAPE, CLR_ESCAPE, errorLine.strip()))
             failed += 1
         else:
-            print('%s[       OK ]%s %s' % (GREEN_ESCAPE, CLR_ESACPE, testName))
+            print('%s[       OK ]%s %s' % (GREEN_ESCAPE, CLR_ESCAPE, testName))
             passed += 1
 
     total = passed + failed
-    print('[----------]')
-    print('[==========] Ran %d tests' % (total))
-    print('%s[  PASSED  ]%s %d of %d tests.' % (GREEN_ESCAPE, CLR_ESACPE, passed, total))
+    print('%s[----------]%s' % (GREEN_ESCAPE, CLR_ESCAPE))
+    print('%s[==========]%s Ran %d tests' % (GREEN_ESCAPE, CLR_ESCAPE, total))
+    print('%s[  PASSED  ]%s %d of %d tests.' % (GREEN_ESCAPE, CLR_ESCAPE, passed, total))
     if failed > 0:
-        print('%s[  FAILED  ]%s %d of %d tests.' % (RED_ESCAPE, CLR_ESACPE, failed, total))
+        print('%s[  FAILED  ]%s %d of %d tests.' % (RED_ESCAPE, CLR_ESCAPE, failed, total))
 
     if failed > 0:
         exit(-1)
