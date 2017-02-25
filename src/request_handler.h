@@ -104,4 +104,3 @@ class RequestHandler {
 
 #define REGISTER_REQUEST_HANDLER(ClassName) \
   static RequestHandlerRegisterer<ClassName> ClassName##__registerer(#ClassName)
-
