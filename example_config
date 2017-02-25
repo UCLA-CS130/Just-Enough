@@ -2,12 +2,10 @@
 
 port 8080; # This is also a comment.
 
-path / StaticHandler {
-	root /foo/bar;	
+path /static StaticHandler {
+	root testFiles1;
 }
 
 path /echo EchoHandler {
-	
+
 }
-
-
