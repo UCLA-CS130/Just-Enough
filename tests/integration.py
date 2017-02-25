@@ -9,7 +9,7 @@ import time
 import urllib.request
 
 # display settings, in case you want to debug a test
-SHOW_WEBSERVER_OUTPUT_INLINE = True
+SHOW_WEBSERVER_OUTPUT_INLINE = False
 SHOW_GENERATED_CONFIG_INLINE = False
 
 def getScriptPath():
@@ -215,6 +215,55 @@ class Test:
                 if not code: return "request failed"
                 if code != 404:
                     return "expected 404 Not Found, but got: " + str(code) + ": " + content
+
+                return Test.PASS
+
+    def test_status():
+        """ test the Status Handler
+        """
+        config = {
+                'filename': 'temp_config',
+                'port': 8080,
+                'handlers': [
+                    ('/status', 'StatusHandler', []),
+                    ('/echo', 'EchoHandler', []),
+                    ],
+                }
+
+        with TemporaryConfigFile(config) as filepath:
+            with WebserverRunningContext(filepath):
+                for i in range(13):
+                    code, content = makeWebserverRequest(config, '/echo')
+                    if not code: return "request failed"
+                    if code != 200:
+                        return "expected 200 OK, but got: " + str(code) + ": " + content
+
+                for i in range(17):
+                    code, content = makeWebserverRequest(config, '/bad')
+                    if not code: return "request failed"
+                    if code != 404:
+                        return "expected 404 Not Found, but got: " + str(code) + ": " + content
+
+                code, content = makeWebserverRequest(config, '/status')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+
+                content = content.decode('utf-8')
+                expectedOutputChunks = {
+                        '/echo',
+                        '13',
+                        '/bad',
+                        '17',
+                        'EchoHandler',
+                        'StatusHandler',
+                        'default',
+                        'NotFoundHandler',
+                        }
+
+                for chunk in expectedOutputChunks:
+                    if chunk not in content:
+                        return "response does not contain expected '%s'" % chunk
 
                 return Test.PASS
 
