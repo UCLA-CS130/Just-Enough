@@ -30,7 +30,7 @@ TEST(EchoHandlerTest, createEchoHandler) {
 
 class EchoHandlerTester : public ::testing::Test {
     protected:
-        virtual std::unique_ptr<RequestHandler> makeTestEchoHandler() {
+        virtual std::unique_ptr<RequestHandler> makeTestEchoHandler(){
             NginxConfig config;
             std::unique_ptr<RequestHandler> handler(new EchoHandler());
             handler->Init("/foo", config);
@@ -57,4 +57,3 @@ TEST_F(EchoHandlerTester, handleRequest) {
     EXPECT_THAT(respStr, HasSubstr("200 OK"));
     EXPECT_THAT(respStr, HasSubstr(reqStr));
 }
-
