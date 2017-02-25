@@ -2,6 +2,7 @@
 #include "gmock/gmock.h"
 #include "echo_handler.h"
 #include "status_handler.h"
+#include "not_found_handler.h"
 #include "options.h"
 #include "webserver.h"
 #include <map>
@@ -37,7 +38,9 @@ class StatusHandlerTestF : public ::testing::Test {
                 h.second->Init(h.first, config);
                 opts_->handlerMap[h.first] = h.second;
             }
+            opts_->defaultHandler = new NotFoundHandler();
             ws_ = new Webserver(opts_);
+            return true;
         }
 
         virtual void Teardown() {

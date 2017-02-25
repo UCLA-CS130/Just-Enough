@@ -19,7 +19,9 @@ RequestHandler::Status StatusHandler::HandleRequest(const Request& req, Response
     for (auto h : opt->handlerMap) {
         handlersStr += "<tr><td>" + h.first + "</td><td>" + h.second->type() + "</td></tr>";
     }
-    handlersStr += "<tr><td>(default)</td><td>" + opt->defaultHandler->type() + "</td></tr>";
+    if (opt->defaultHandler) {
+        handlersStr += "<tr><td>(default)</td><td>" + opt->defaultHandler->type() + "</td></tr>";
+    }
 
     std::string requestCountsStr;
     auto counters = ws->counters();
