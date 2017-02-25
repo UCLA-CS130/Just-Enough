@@ -2,6 +2,7 @@
 #include <boost/asio.hpp>
 #include "options.h"
 #include "request_handler.h"
+#include "multimap_counter.h"
 
 class Webserver {
     public:
@@ -27,9 +28,13 @@ class Webserver {
         virtual Options* options() const {
             return opt_;
         }
+        virtual MultiMapCounter<std::string, Response::ResponseCode>* counters() {
+            return &counters_;
+        }
 
     private:
         boost::asio::io_service io_service_;
         Options* opt_;
+        MultiMapCounter<std::string, Response::ResponseCode> counters_;
 };
 

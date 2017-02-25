@@ -2,6 +2,7 @@
 #include "gmock/gmock.h"
 #include "echo_handler.h"
 #include "status_handler.h"
+#include "not_found_handler.h"
 #include "options.h"
 #include "webserver.h"
 #include <map>
@@ -37,7 +38,9 @@ class StatusHandlerTestF : public ::testing::Test {
                 h.second->Init(h.first, config);
                 opts_->handlerMap[h.first] = h.second;
             }
+            opts_->defaultHandler = new NotFoundHandler();
             ws_ = new Webserver(opts_);
+            return true;
         }
 
         virtual void Teardown() {
@@ -81,3 +84,53 @@ TEST_F(StatusHandlerTestF, handleRequest) {
     delete s1;
 }
 
+TEST_F(StatusHandlerTestF, noServer) {
+    Webserver::instance = nullptr; // may have been created by previous tests
+    RequestHandler* s1 = new StatusHandler();
+
+    auto req = Request::Parse(
+            "GET /status HTTP/1.1\r\n"
+            "\r\n"
+            );
+
+    Response resp;
+    ASSERT_EQ(s1->HandleRequest(*req, &resp), RequestHandler::Error);
+    delete s1;
+}
+
+TEST_F(StatusHandlerTestF, counts) {
+    RequestHandler* h1 = new EchoHandler();
+    RequestHandler* h2 = new EchoHandler();
+    RequestHandler* s1 = new StatusHandler();
+    createServerFromHandlers({
+            {"/foo", h1},
+            {"/bar", h2},
+            {"/status", s1},
+            });
+
+    // update counters an usual amount of times
+    std::string req1 = "GET /foo HTTP/1.1\r\n\r\n";
+    std::string req2 = "GET /bar HTTP/1.1\r\n\r\n";
+    std::string req3 = "GET /status HTTP/1.1\r\n\r\n";
+    for(int i = 0; i < 7; i++) {
+        ws_->processRawRequest(req1);
+    }
+    for(int i = 0; i < 13; i++) {
+        ws_->processRawRequest(req2);
+    }
+    string respStr = ws_->processRawRequest(req3);
+
+    EXPECT_THAT(respStr, HasSubstr("200 OK"));
+    EXPECT_THAT(respStr, HasSubstr("/foo"));
+    EXPECT_THAT(respStr, HasSubstr("/bar"));
+    EXPECT_THAT(respStr, HasSubstr("EchoHandler"));
+    EXPECT_THAT(respStr, HasSubstr("/status"));
+    EXPECT_THAT(respStr, HasSubstr("StatusHandler"));
+
+    EXPECT_THAT(respStr, HasSubstr("7"));
+    EXPECT_THAT(respStr, HasSubstr("13"));
+
+    delete h1;
+    delete h2;
+    delete s1;
+}

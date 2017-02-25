@@ -142,6 +142,7 @@ class WebserverMatcherTest : public ::testing::Test {
             }
             opts_->defaultHandler = nullptr;
             ws_ = new Webserver(opts_);
+            return true;
         }
 
         virtual void Teardown() {

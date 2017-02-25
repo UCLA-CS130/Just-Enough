@@ -12,6 +12,9 @@ using std::vector;
 void Response::SetStatus(const Response::ResponseCode response_code) {
     code_ = response_code;
 }
+Response::ResponseCode Response::status() const {
+    return code_;
+}
 void Response::AddHeader(const string& header_name, const string& header_value) {
     headers_.push_back(std::pair<string, string>(header_name, header_value));
 }
