@@ -58,7 +58,7 @@ RequestHandler::Status StatusHandler::HandleRequest(const Request& req, Response
             "  </style>"
             "  </head>"
             "  <body>"
-            "    <h1>Webserver Status</h1>"
+            "    <h1 style=\"text-decoration: underline;\">Webserver Status</h1>"
             "    <h2>Registered handlers:</h2>"
             "    <table>"
             "      <tr class=\"underline\"><th>Path</th><th>Handler Type</th></tr>"
