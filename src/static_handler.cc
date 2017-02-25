@@ -23,6 +23,12 @@ RequestHandler::Status StaticHandler::Init(const std::string& uri_prefix, const 
       return RequestHandler::Error;
     }
   }
+
+  notFoundHandler_ = RequestHandler::CreateByName("NotFoundHandler");
+  if ( ! notFoundHandler_) {
+      std::cerr << "Static handler could not create NotFoundHandler." << std::endl;
+      return RequestHandler::Error;
+  }
   return RequestHandler::OK;
 }
 
@@ -54,8 +60,7 @@ RequestHandler::Status StaticHandler::HandleRequest(const Request& req, Response
 
     switch (err) {
         case FileErr_NoFile:
-            resp->SetStatus(Response::code_404_not_found);
-            return RequestHandler::OK;
+            return notFoundHandler_->HandleRequest(req, resp);
         case FileErr_NoPermission:
             resp->SetStatus(Response::code_401_unauthorized);
             return RequestHandler::OK;
@@ -74,4 +79,10 @@ RequestHandler::Status StaticHandler::HandleRequest(const Request& req, Response
 
     resp->SetStatus(Response::code_500_internal_error);
     return RequestHandler::Error;
+}
+
+StaticHandler::~StaticHandler() {
+    if (notFoundHandler_) {
+        delete notFoundHandler_;
+    }
 }

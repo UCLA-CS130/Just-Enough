@@ -9,7 +9,7 @@ class StaticHandler : public RequestHandler {
       virtual Status HandleRequest(const Request& request,
               Response* response);
 
-      virtual ~StaticHandler() = default;
+      virtual ~StaticHandler();
 
       virtual std::string type() const {
           return "StaticHandler";
@@ -19,6 +19,7 @@ class StaticHandler : public RequestHandler {
     protected:
       std::string filebase_;
       std::string path_;
+      RequestHandler* notFoundHandler_;
 };
 
 REGISTER_REQUEST_HANDLER(StaticHandler);
