@@ -56,7 +56,7 @@ TEST(OptionsLoadFileTest, NoFileExists) {
 
 TEST(OptionsLoadFileTest, ASimpleFile) {
 	Options opt;
-	EXPECT_TRUE(opt.loadOptionsFromFile("test_config"));
+	EXPECT_TRUE(opt.loadOptionsFromFile("example_config"));
 }
 
 //HANDLERS TESTS

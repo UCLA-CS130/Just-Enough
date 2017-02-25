@@ -1,9 +1,0 @@
-port 8080;
-
-path /echo EchoHandler {
-	
-}
-
-path /test/Echo EchoHandler {
-	
-}
