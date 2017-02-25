@@ -19,7 +19,7 @@ RequestHandler::Status StaticHandler::Init(const std::string& uri_prefix, const 
         }
     }
     else{
-      std::cerr << "Static Handler must specify 'filebase' parameter." << std::endl;
+      std::cerr << "Invalid Static Handler config" << std::endl;
       return RequestHandler::Error;
     }
   }
