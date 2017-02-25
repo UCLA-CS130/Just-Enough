@@ -4,11 +4,11 @@
 #include <boost/filesystem.hpp>
 
 using std::string;
-int STATEMENT_SIZE = 2;
+size_t STATEMENT_SIZE = 2;
 
 RequestHandler::Status StaticHandler::Init(const std::string& uri_prefix, const NginxConfig& config) {
   path_ = uri_prefix;
-  for(int i = 0; i < config.statements_.size(); i++) {
+  for(size_t i = 0; i < config.statements_.size(); i++) {
     if (config.statements_[i]->tokens_.size() == STATEMENT_SIZE){
         if(config.statements_[i]->tokens_[0] == "root"){
           filebase_ = config.statements_[i]->tokens_[1];
