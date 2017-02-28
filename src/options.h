@@ -2,7 +2,6 @@
 #include <map>
 #include <vector>
 
-#include "module.h"
 #include "request_handler.h"
 #include "config_parser.h"
 
