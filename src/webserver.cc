@@ -55,8 +55,9 @@ inline std::string Webserver::readStrUntil(
     return line;
 }
 
-inline void Webserver::logConnectionDetails(tcp::socket& socket) {
-    std::cout << "Accepted connection from "
+inline void Webserver::logConnectionDetails(int threadIndex, tcp::socket& socket) {
+    std::unique_lock<std::mutex> lck(mtx_);
+    std::cout << "Thread " << threadIndex << " accepted connection from "
         << socket.remote_endpoint().address().to_string()
         << ":" << socket.remote_endpoint().port()
         << std::endl;
@@ -67,8 +68,8 @@ inline void Webserver::writeResponseString(tcp::socket& socket, const std::strin
     boost::asio::write(socket, boost::asio::buffer(str), ignored_error);
 }
 
-void Webserver::processConnection(tcp::socket& socket) {
-    logConnectionDetails(socket);
+void Webserver::processConnection(int threadIndex, tcp::socket& socket) {
+    logConnectionDetails(threadIndex, socket);
 
     boost::asio::streambuf buf;
     std::string req;
@@ -86,9 +87,9 @@ void Webserver::processConnection(tcp::socket& socket) {
     writeResponseString(socket, response);
 }
 
-bool Webserver::acceptConnection(tcp::acceptor& acceptor, tcp::socket& socket) {
+bool Webserver::acceptConnection(tcp::socket& socket) {
     try {
-        acceptor.accept(socket);
+        acceptor_->accept(socket);
     } catch (boost::system::system_error& err) {
         std::cerr << err.what() << std::endl;
         return false;
@@ -97,18 +98,28 @@ bool Webserver::acceptConnection(tcp::acceptor& acceptor, tcp::socket& socket) {
 }
 
 void Webserver::run() {
-    try {
-        boost::asio::io_service io_service;
-        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), opt_->port));
+    acceptor_ = std::unique_ptr<tcp::acceptor>(new tcp::acceptor(io_service_, tcp::endpoint(tcp::v4(), opt_->port)));
 
+    for (int i = 0; i < DEFAULT_NUM_THREADS; i++) {
+        threads_.emplace_back(std::thread(&Webserver::runThread, this, i));
+    }
+    for (int i = 0; i < (int)threads_.size(); i++) {
+        threads_[i].join();
+        std::unique_lock<std::mutex> lck(mtx_);
+        std::cout << "Thread " << i << " exited"  << std::endl;
+    }
+}
+
+void Webserver::runThread(int threadIndex) {
+    try {
         while (true) {
             tcp::socket socket(io_service_);
 
-            if ( !  acceptConnection(acceptor, socket)) {
+            if ( !  acceptConnection(socket)) {
                 return;
             }
 
-            processConnection(socket);
+            processConnection(threadIndex, socket);
         }
     } catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
@@ -117,7 +128,8 @@ void Webserver::run() {
 
 Webserver* Webserver::instance = nullptr;
 Webserver::Webserver(Options* opt)
-: opt_(opt)
+: opt_(opt), io_service_()
 {
     Webserver::instance = this;
 }
+

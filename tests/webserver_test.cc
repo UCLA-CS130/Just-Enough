@@ -14,10 +14,21 @@ using boost::asio::ip::tcp;
 
 class MockWebserverRun : public Webserver {
     public:
-        MOCK_METHOD2(acceptConnection, bool(tcp::acceptor& acceptor, tcp::socket& sock));
-        MOCK_METHOD1(processConnection, void(tcp::socket& sock));
+        MOCK_METHOD1(acceptConnection, bool(tcp::socket& sock));
+        MOCK_METHOD2(processConnection, void(int threadIndex, tcp::socket& sock));
+        MOCK_METHOD1(runThread, void(int));
 
         MockWebserverRun(Options* opt)
+            : Webserver(opt)
+        { }
+};
+
+class MockWebserverRunThread : public Webserver {
+    public:
+        MOCK_METHOD1(acceptConnection, bool(tcp::socket& sock));
+        MOCK_METHOD2(processConnection, void(int threadIndex, tcp::socket& sock));
+
+        MockWebserverRunThread(Options* opt)
             : Webserver(opt)
         { }
 };
@@ -30,7 +41,7 @@ class MockWebserverProcessConnection : public Webserver {
                 boost::asio::streambuf& buf,
                 const char* termChar,
                 boost::system::error_code& err));
-        MOCK_METHOD1(logConnectionDetails, void(tcp::socket& socket));
+        MOCK_METHOD2(logConnectionDetails, void(int, tcp::socket& socket));
         MOCK_METHOD2(writeResponseString, void(boost::asio::ip::tcp::socket& socket, const std::string& s));
 
         MockWebserverProcessConnection(Options* opt)
@@ -65,30 +76,46 @@ TEST(WebserverTest, processRawRequest) {
     EXPECT_THAT(resp, HasSubstr(req));
 }
 
-
-TEST(WebserverTest, acceptConnections) {
+TEST(WebserverTest, startThreads) {
     Options opts;
     opts.port = 8080;
     MockWebserverRun webserver(&opts);
 
-    EXPECT_CALL(webserver, acceptConnection(_, _))
+    // TODO: set & use number of threads in options
+    for (int i = 0; i < DEFAULT_NUM_THREADS; i++) {
+        EXPECT_CALL(webserver, runThread(i))
+            .Times(1)
+            .WillOnce(Return());
+    }
+
+    webserver.run();
+}
+
+
+TEST(WebserverTest, acceptConnections) {
+    Options opts;
+    opts.port = 8080;
+    MockWebserverRunThread webserver(&opts);
+
+    EXPECT_CALL(webserver, acceptConnection(_))
         .Times(3)
         .WillOnce(Return(true))
         .WillOnce(Return(true))
         .WillOnce(Return(false));
 
-    EXPECT_CALL(webserver, processConnection(_))
+    EXPECT_CALL(webserver, processConnection(_, _))
         .Times(2); // for two accepted connections
 
-    webserver.run();
+    webserver.runThread(0);
 }
 
 TEST(WebserverTest, processConnectionTest) {
     Options opts;
     opts.port = 8080;
+    int threadIndex = 0;
     MockWebserverProcessConnection webserver(&opts);
 
-    EXPECT_CALL(webserver, logConnectionDetails(_)).Times(1);
+    EXPECT_CALL(webserver, logConnectionDetails(threadIndex, _)).Times(1);
 
     std::string s = "0123456789\r\n";
     EXPECT_CALL(webserver, readStrUntil(_, _, StrEq("\r\n"), _))
@@ -104,7 +131,7 @@ TEST(WebserverTest, processConnectionTest) {
 
     boost::asio::io_service io_service;
     boost::asio::ip::tcp::socket socket(io_service);
-    webserver.processConnection(socket);
+    webserver.processConnection(threadIndex, socket);
 }
 
 TEST(WebserverTest, matcheRequestWithHandler) {
