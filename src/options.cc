@@ -11,6 +11,7 @@ typedef std::map<string, string> stringMap;
 const int MAX_PORT = 65535;
 const int MIN_PORT = 1024;
 const int MAX_THREADS = 2000; // 32-bit system allows only max 2048 threads
+const int DEFAULT_NUM_THREADS = 8;
 
 const int KEY = 0;
 const int VAL = 1;
@@ -131,9 +132,6 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
                 return false;
             } else {
                 issetThread = addThread(temp_config);
-                if ( ! issetThread) {
-                    return false;
-                }
             }
         }
 
@@ -163,6 +161,12 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
     if ( ! issetPort) {
         std::cerr << "A port was not specified.\n";
         return false;
+    }
+
+    if ( ! issetThread) {
+        // for any bad threads numbers, this is default thread #
+        this->thread = DEFAULT_NUM_THREADS;
+        issetThread = true;
     }
 
     if ( ! defaultHandler) {
