@@ -7,7 +7,7 @@
 
 struct Options {
     unsigned short port;
-    unsigned short thread;
+    unsigned int thread;
     std::map<std::string, RequestHandler*> handlerMap;
     RequestHandler* defaultHandler;
     bool addHandler(std::string type, std::string path, const NginxConfig& handler_config);

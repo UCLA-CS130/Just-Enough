@@ -93,7 +93,7 @@ bool Options::addThread(std::shared_ptr<NginxConfigStatement> thread_config) {
         std::cerr << "Invalid number of threads.\n";
         return false;
     }
-    this->thread = (unsigned short) std::stoi(thread);
+    this->thread = (unsigned int) std::stoi(thread);
     return true;
 }
 
