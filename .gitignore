@@ -1,0 +1,12 @@
+.DS_STORE
+*.o
+*.dSYM
+*.a
+webserver
+run_tests
+config_parser
+*.gcov
+*.gcda
+*.gcno
+build/
+coverage/
