@@ -89,11 +89,11 @@ bool Options::addThread(std::shared_ptr<NginxConfigStatement> thread_config) {
     }
 
     string thread = thread_config->tokens_[VAL];
-    if((unsigned int) std::stoi(thread) > MAX_THREAD || (unsigned int) std::stoi(thread) < 1) {
+    if((unsigned int) std::stoi(thread) > MAX_THREADS || (unsigned int) std::stoi(thread) < 1) {
         std::cerr << "Invalid number of threads.\n";
         return false;
     }
-    this->thread = (unsigned short) std::stoi(port);
+    this->thread = (unsigned short) std::stoi(thread);
     return true;
 }
 
@@ -107,6 +107,7 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
 
     defaultHandler = nullptr;
     bool issetPort = false;
+    bool issetThread = false;
     for (unsigned int i =0; i < config.statements_.size(); i++) {
         std::shared_ptr<NginxConfigStatement> temp_config = config.statements_[i];
 
