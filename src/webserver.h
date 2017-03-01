@@ -23,7 +23,7 @@ class Webserver {
                 const char* termChar,
                 boost::system::error_code& err);
         virtual void logConnectionDetails(int threadIndex, boost::asio::ip::tcp::socket& socket);
-        virtual bool acceptConnection(boost::asio::ip::tcp::acceptor& acceptor, boost::asio::ip::tcp::socket& socket);
+        virtual bool acceptConnection(boost::asio::ip::tcp::socket& socket);
         virtual void processConnection(int threadIndex, boost::asio::ip::tcp::socket& socket);
         virtual std::string processRawRequest(std::string& reqStr);
         virtual void writeResponseString(boost::asio::ip::tcp::socket& socket, const std::string& s);
@@ -39,7 +39,7 @@ class Webserver {
     private:
         Options* opt_;
         boost::asio::io_service io_service_;
-        boost::asio::ip::tcp::acceptor acceptor_;
+        std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
 
         std::mutex mtx_; // guards output, TODO(evan): use thread-safe logging instead
 

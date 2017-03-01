@@ -87,9 +87,9 @@ void Webserver::processConnection(int threadIndex, tcp::socket& socket) {
     writeResponseString(socket, response);
 }
 
-bool Webserver::acceptConnection(tcp::acceptor& acceptor, tcp::socket& socket) {
+bool Webserver::acceptConnection(tcp::socket& socket) {
     try {
-        acceptor.accept(socket);
+        acceptor_->accept(socket);
     } catch (boost::system::system_error& err) {
         std::cerr << err.what() << std::endl;
         return false;
@@ -98,11 +98,15 @@ bool Webserver::acceptConnection(tcp::acceptor& acceptor, tcp::socket& socket) {
 }
 
 void Webserver::run() {
+    acceptor_ = std::unique_ptr<tcp::acceptor>(new tcp::acceptor(io_service_, tcp::endpoint(tcp::v4(), opt_->port)));
+
     for (int i = 0; i < DEFAULT_NUM_THREADS; i++) {
         threads_.emplace_back(std::thread(&Webserver::runThread, this, i));
     }
-    for (auto& thr : threads_) {
-        thr.join();
+    for (int i = 0; i < threads_.size(); i++) {
+        threads_[i].join();
+        std::unique_lock<std::mutex> lck(mtx_);
+        std::cout << "Thread " << i << " exited"  << std::endl;
     }
 }
 
@@ -111,7 +115,7 @@ void Webserver::runThread(int threadIndex) {
         while (true) {
             tcp::socket socket(io_service_);
 
-            if ( !  acceptConnection(acceptor_, socket)) {
+            if ( !  acceptConnection(socket)) {
                 return;
             }
 
@@ -124,7 +128,7 @@ void Webserver::runThread(int threadIndex) {
 
 Webserver* Webserver::instance = nullptr;
 Webserver::Webserver(Options* opt)
-: opt_(opt), io_service_(), acceptor_(io_service_, tcp::endpoint(tcp::v4(), opt_->port))
+: opt_(opt), io_service_()
 {
     Webserver::instance = this;
 }
