@@ -100,7 +100,7 @@ bool Webserver::acceptConnection(tcp::socket& socket) {
 void Webserver::run() {
     acceptor_ = std::unique_ptr<tcp::acceptor>(new tcp::acceptor(io_service_, tcp::endpoint(tcp::v4(), opt_->port)));
 
-    for (int i = 0; i < DEFAULT_NUM_THREADS; i++) {
+    for (int i = 0; i < opt_->thread; i++) {
         threads_.emplace_back(std::thread(&Webserver::runThread, this, i));
     }
     for (int i = 0; i < (int)threads_.size(); i++) {
