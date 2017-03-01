@@ -126,12 +126,15 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
         } 
 
         // Sets threads.
-        if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "threads") {
+        else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "threads") {
             if (issetThread) {
                 std::cerr << "Multiple threads in config file.\n";
                 return false;
             } else {
                 issetThread = addThread(temp_config);
+                if( ! issetThread) {
+                    return false;
+                }
             }
         }
 
@@ -164,7 +167,7 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
     }
 
     if ( ! issetThread) {
-        // for any bad threads numbers, this is default thread #
+        // This is default thread #.
         this->thread = DEFAULT_NUM_THREADS;
         issetThread = true;
     }
