@@ -1,6 +1,7 @@
 # This is a comment.
 
 port 8080; # This is also a comment.
+threads 8;
 
 path /static StaticHandler {
 	root testFiles1;
