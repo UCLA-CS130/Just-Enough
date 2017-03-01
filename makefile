@@ -62,11 +62,12 @@ integration:
 	tests/integration.py
 
 # Note: coverage requires recompiling everything with new flags
-# after a coverage build, you need to `make clean` again before recompiling.
 coverage: clean
 	@mkdir -p $(COV_DIR)
-	@exec make test EXTRA_FLAGS="$(COVFLAGS)"
+	@exec make --no-print-directory test EXTRA_FLAGS="$(COVFLAGS)"
 	@$(COVCC) $(COVRFLAGS) -s src -o $(OBJ_DIR) $(notdir $(CC_FILES))
+	@mv *.gcov $(COV_DIR)/
+	@exec make -s clean
 
 test-all: test integration
 

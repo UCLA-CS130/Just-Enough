@@ -12,9 +12,9 @@
 	If your build is not working, try cleaning and rebuilding.
 	Make may not always notice dependency changes, especially if changing branches.
 * `make coverage` will run unit tests and track coverage information with gcov.
-	Note: coverage statistics will be printed and coverage files will be placed in the root directory.
-	Note: this will first run `make clean` and rebuild with special flags. After looking at the .gcov files,
-	you should run `make clean` before building again.
+	Note: coverage statistics will be printed and coverage files will be placed in the `coverage` directory.
+	Note: this will first run `make clean` and rebuild with special flags.
+	Note: coverage information applies only to unit tests, not integration tests
 
 ## Running:
 run `./webserver example_config` to run using `example_config`. We recommend you create local config files
