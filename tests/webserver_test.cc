@@ -16,8 +16,19 @@ class MockWebserverRun : public Webserver {
     public:
         MOCK_METHOD1(acceptConnection, bool(tcp::socket& sock));
         MOCK_METHOD2(processConnection, void(int threadIndex, tcp::socket& sock));
+        MOCK_METHOD1(runThread, void(int));
 
         MockWebserverRun(Options* opt)
+            : Webserver(opt)
+        { }
+};
+
+class MockWebserverRunThread : public Webserver {
+    public:
+        MOCK_METHOD1(acceptConnection, bool(tcp::socket& sock));
+        MOCK_METHOD2(processConnection, void(int threadIndex, tcp::socket& sock));
+
+        MockWebserverRunThread(Options* opt)
             : Webserver(opt)
         { }
 };
@@ -65,11 +76,26 @@ TEST(WebserverTest, processRawRequest) {
     EXPECT_THAT(resp, HasSubstr(req));
 }
 
+TEST(WebserverTest, startThreads) {
+    Options opts;
+    opts.port = 8080;
+    MockWebserverRun webserver(&opts);
+
+    // TODO: set & use number of threads in options
+    for (int i = 0; i < DEFAULT_NUM_THREADS; i++) {
+        EXPECT_CALL(webserver, runThread(i))
+            .Times(1)
+            .WillOnce(Return());
+    }
+
+    webserver.run();
+}
+
 
 TEST(WebserverTest, acceptConnections) {
     Options opts;
     opts.port = 8080;
-    MockWebserverRun webserver(&opts);
+    MockWebserverRunThread webserver(&opts);
 
     EXPECT_CALL(webserver, acceptConnection(_))
         .Times(3)
