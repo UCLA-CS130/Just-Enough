@@ -5,7 +5,7 @@
 #include "request_handler.h"
 #include "multimap_counter.h"
 
-const size_t DEFAULT_NUM_THREADS = 8;
+const int DEFAULT_NUM_THREADS = 8;
 
 class Webserver {
     public:

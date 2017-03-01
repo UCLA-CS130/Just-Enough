@@ -103,7 +103,7 @@ void Webserver::run() {
     for (int i = 0; i < DEFAULT_NUM_THREADS; i++) {
         threads_.emplace_back(std::thread(&Webserver::runThread, this, i));
     }
-    for (int i = 0; i < threads_.size(); i++) {
+    for (int i = 0; i < (int)threads_.size(); i++) {
         threads_[i].join();
         std::unique_lock<std::mutex> lck(mtx_);
         std::cout << "Thread " << i << " exited"  << std::endl;
