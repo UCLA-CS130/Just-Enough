@@ -79,10 +79,10 @@ TEST(WebserverTest, processRawRequest) {
 TEST(WebserverTest, startThreads) {
     Options opts;
     opts.port = 8080;
+    opts.thread = 8;
     MockWebserverRun webserver(&opts);
 
-    // TODO: set & use number of threads in options
-    for (int i = 0; i < DEFAULT_NUM_THREADS; i++) {
+    for (int i = 0; i < opts.thread; i++) {
         EXPECT_CALL(webserver, runThread(i))
             .Times(1)
             .WillOnce(Return());

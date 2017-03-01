@@ -4,12 +4,12 @@
 
 // PORT TESTS
 TEST(OptionsLoadStreamPortTest, BoundaryCases) {
-	std::stringstream port0("port 0;");
-	std::stringstream port1023("port 1023;");
-	std::stringstream port1024("port 1024;");
-	std::stringstream port8080("port 8080;");
-	std::stringstream port65535("port 65535;");
-	std::stringstream port65545("port 65545;");
+	std::stringstream port0("port 0; thread 1;");
+	std::stringstream port1023("port 1023; thread 1;");
+	std::stringstream port1024("port 1024; thread 1;");
+	std::stringstream port8080("port 8080; thread 1;");
+	std::stringstream port65535("port 65535; thread 1;");
+	std::stringstream port65545("port 65545; thread 1;");
 
 	Options opt;
 
@@ -57,6 +57,15 @@ TEST(OptionsLoadFileTest, NoFileExists) {
 TEST(OptionsLoadFileTest, ASimpleFile) {
 	Options opt;
 	EXPECT_TRUE(opt.loadOptionsFromFile("example_config"));
+}
+//THREADS TESTS
+TEST(OptionsLoadStreamThreadTest, badNumThreads) {
+	std::stringstream threads("port 8080; threads 0;");
+        std::stringstream threads2("port 8080; threads 2001");
+
+	Options opt;
+	EXPECT_FALSE(opt.loadOptionsFromStream(&threads));
+	EXPECT_FALSE(opt.loadOptionsFromStream(&threads2));
 }
 
 //HANDLERS TESTS
