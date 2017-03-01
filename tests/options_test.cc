@@ -2,6 +2,8 @@
 #include "options.h"
 #include <sstream>
 
+const int DEFAULT_NUM_THREADS = 8;
+
 // PORT TESTS
 TEST(OptionsLoadStreamPortTest, BoundaryCases) {
 	std::stringstream port0("port 0;");
@@ -12,13 +14,18 @@ TEST(OptionsLoadStreamPortTest, BoundaryCases) {
 	std::stringstream port65545("port 65545;");
 
 	Options opt;
+	Options opt2;
+	Options opt3;
+	Options opt4;
+	Options opt5;
+	Options opt6;
 
 	EXPECT_FALSE(opt.loadOptionsFromStream(&port0));
-	EXPECT_FALSE(opt.loadOptionsFromStream(&port1023));
-	EXPECT_TRUE(opt.loadOptionsFromStream(&port1024));
-	EXPECT_TRUE(opt.loadOptionsFromStream(&port8080));
-	EXPECT_TRUE(opt.loadOptionsFromStream(&port65535));
-	EXPECT_FALSE(opt.loadOptionsFromStream(&port65545));
+	EXPECT_FALSE(opt2.loadOptionsFromStream(&port1023));
+	EXPECT_TRUE(opt3.loadOptionsFromStream(&port1024));
+	EXPECT_TRUE(opt4.loadOptionsFromStream(&port8080));
+	EXPECT_TRUE(opt5.loadOptionsFromStream(&port65535));
+	EXPECT_FALSE(opt6.loadOptionsFromStream(&port65545));
 }
 
 TEST(OptionsLoadStreamPortTest, NoPort) {
@@ -57,6 +64,29 @@ TEST(OptionsLoadFileTest, NoFileExists) {
 TEST(OptionsLoadFileTest, ASimpleFile) {
 	Options opt;
 	EXPECT_TRUE(opt.loadOptionsFromFile("example_config"));
+}
+//THREADS TESTS
+TEST(OptionsLoadStreamThreadTest, badNumThreads) {
+	std::stringstream threads("port 8080; threads 0;");
+        std::stringstream threads2("port 8080; threads 2001;");
+
+	Options opt;
+	EXPECT_FALSE(opt.loadOptionsFromStream(&threads));
+        EXPECT_FALSE(opt.loadOptionsFromStream(&threads2));
+}
+TEST(OptionsLoadStreamThreadTest, noThreads) {
+	std::stringstream threads("port 8080;");
+
+	Options opt;
+	EXPECT_TRUE(opt.loadOptionsFromStream(&threads));
+	EXPECT_EQ(opt.thread, DEFAULT_NUM_THREADS);
+}
+TEST(OptionsLoadStreamThreadTest, simpleThreads) {
+	std::stringstream threads("port 8080; threads 4;");
+
+	Options opt;
+	EXPECT_TRUE(opt.loadOptionsFromStream(&threads));
+	EXPECT_EQ(opt.thread, 4);
 }
 
 //HANDLERS TESTS

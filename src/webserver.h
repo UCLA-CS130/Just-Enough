@@ -5,8 +5,6 @@
 #include "request_handler.h"
 #include "multimap_counter.h"
 
-const int DEFAULT_NUM_THREADS = 8;
-
 class Webserver {
     public:
         // faux singleton: Webserver::instance stores the most recently constructed webserver.

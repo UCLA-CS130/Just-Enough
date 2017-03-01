@@ -10,6 +10,8 @@ typedef std::map<string, string> stringMap;
 
 const int MAX_PORT = 65535;
 const int MIN_PORT = 1024;
+const int MAX_THREADS = 2000; // 32-bit system allows only max 2048 threads
+const int DEFAULT_NUM_THREADS = 8;
 
 const int KEY = 0;
 const int VAL = 1;
@@ -81,6 +83,21 @@ bool Options::addPort(std::shared_ptr<NginxConfigStatement> port_config) {
     return true;
 }
 
+bool Options::addThread(std::shared_ptr<NginxConfigStatement> thread_config) {
+    if (thread_config->tokens_.size() != STATEMENT_SIZE) {
+        std::cerr << "Incorrect number of tokens. (For threads)\n";
+        return false;
+    }
+
+    string thread = thread_config->tokens_[VAL];
+    if((unsigned int) std::stoi(thread) > MAX_THREADS || (unsigned int) std::stoi(thread) < 1) {
+        std::cerr << "Invalid number of threads.\n";
+        return false;
+    }
+    this->thread = (unsigned int) std::stoi(thread);
+    return true;
+}
+
 bool Options::loadOptionsFromStream(std::istream* config_file) {
 
     NginxConfigParser parser;
@@ -91,6 +108,7 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
 
     defaultHandler = nullptr;
     bool issetPort = false;
+    bool issetThread = false;
     for (unsigned int i =0; i < config.statements_.size(); i++) {
         std::shared_ptr<NginxConfigStatement> temp_config = config.statements_[i];
 
@@ -106,6 +124,19 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
                 }
             }
         } 
+
+        // Sets threads.
+        else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "threads") {
+            if (issetThread) {
+                std::cerr << "Multiple threads in config file.\n";
+                return false;
+            } else {
+                issetThread = addThread(temp_config);
+                if( ! issetThread) {
+                    return false;
+                }
+            }
+        }
 
         // Sets handler.
         else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "path") { 
@@ -133,6 +164,12 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
     if ( ! issetPort) {
         std::cerr << "A port was not specified.\n";
         return false;
+    }
+
+    if ( ! issetThread) {
+        // This is default thread #.
+        this->thread = DEFAULT_NUM_THREADS;
+        issetThread = true;
     }
 
     if ( ! defaultHandler) {
