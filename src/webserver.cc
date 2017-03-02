@@ -8,7 +8,6 @@
 
 using boost::asio::ip::tcp;
 
-// perform longest prefix matching and return matching handler, or default handler
 RequestHandler* Webserver::matchRequestWithHandler(const Request& req) {
     // TODO(evan): stop using brute force prefix matching
     std::string prefix = req.uri();
@@ -116,7 +115,7 @@ void Webserver::runThread(int threadIndex) {
             tcp::socket socket(io_service_);
 
             if ( !  acceptConnection(socket)) {
-                return;
+                return; // TODO: is this really what you want? one failed connection will crash your server.
             }
 
             processConnection(threadIndex, socket);
