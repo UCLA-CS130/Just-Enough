@@ -12,24 +12,43 @@ class Webserver {
         static Webserver* instance;
 
         Webserver(Options* opt);
+
         virtual void run();
         virtual void runThread(int threadIndex);
 
+        /*
+         * Read bytes from socket into a string until termChar is found.
+         */
         virtual std::string readStrUntil(
                 boost::asio::ip::tcp::socket& socket,
                 boost::asio::streambuf& buf,
                 const char* termChar,
                 boost::system::error_code& err);
         virtual void logConnectionDetails(int threadIndex, boost::asio::ip::tcp::socket& socket);
+
         virtual bool acceptConnection(boost::asio::ip::tcp::socket& socket);
+
+        /*
+         * Read in request from socket, process with processRawRequest, and pass to writeResponseString.
+         */
         virtual void processConnection(int threadIndex, boost::asio::ip::tcp::socket& socket);
+
+        /*
+         * Parse request string, match with handler, and handle request.
+         */
         virtual std::string processRawRequest(std::string& reqStr);
+
         virtual void writeResponseString(boost::asio::ip::tcp::socket& socket, const std::string& s);
+
+        /*
+         * Perform longest prefix matching and return matching handler, or default handler on failure.
+         */
         virtual RequestHandler* matchRequestWithHandler(const Request& req);
 
         virtual Options* options() const {
             return opt_;
         }
+
         virtual MultiMapCounter<std::string, Response::ResponseCode>* counters() {
             return &counters_;
         }
