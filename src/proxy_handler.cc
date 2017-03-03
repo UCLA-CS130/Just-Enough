@@ -102,6 +102,9 @@ Response ParseRawResponse(const std::string& raw_response)
 
     end = raw_response.find(" ", start);
     header_name = raw_response.substr(start, end - start);
+    if (header_name[header_name.size() - 1] == ':') {
+      header_name.resize(header_name.size() - 1);
+    }
 
     start = end + 1;
     end = raw_response.find("\r\n", start);
