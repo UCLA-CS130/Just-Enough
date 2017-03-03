@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+from threading import Thread
 
 # display settings, in case you want to debug a test
 SHOW_WEBSERVER_OUTPUT_INLINE = False
@@ -381,6 +382,42 @@ class Test:
 
 
                 return Test.PASS
+
+
+
+    def test_multithreaded():
+        """ tests if multithreading works correctly
+        """
+        config = {
+                'filename': 'temp_config',
+                'port': 8080,
+                'handlers': [
+                    ('/delay','DelayHandler',[]),
+                    ],
+                }
+
+        with TemporaryConfigFile(config) as filepath:
+            def thread_func():
+                code, content = makeWebserverRequest(config, '/delay')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+            with WebserverRunningContext(filepath):
+                threads = []
+                for i in range(8):
+                    thread = Thread(target = thread_func)
+                    threads.append(thread)
+                #timing this loop
+                time1 = time.time()
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join()
+                time2 = time.time()
+                print(time2-time1)
+                return Test.PASS
+
+
 
 
 def runTests():

@@ -25,6 +25,6 @@ RequestHandler::Status DelayHandler::HandleRequest(const Request& req, Response*
     resp->SetStatus(Response::code_200_OK);
     resp->SetBody("Delay Test");
     resp->AddHeader("Content-Type", "text/plain");
-    usleep(delay_);
+    usleep(1000000);
     return RequestHandler::OK;
 }
