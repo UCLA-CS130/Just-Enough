@@ -74,9 +74,9 @@ std::unique_ptr<Request> Request::Parse(const string& raw_request) {
 string Request::raw_request() const {
     std::stringstream raw_request;
     raw_request << method() << " " << uri() << " " << version() << "\r\n";
-    Headers headers;
-    for (auto const& header : headers) {
-        raw_request << header.first << " " << header.second << "\r\n";
+    Headers hdrs = headers();
+    for (auto const& hdr : hdrs) {
+        raw_request << hdr.first << ": " << hdr.second << "\r\n";
     }
     raw_request << "\r\n";
     raw_request << body_;

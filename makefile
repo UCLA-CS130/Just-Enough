@@ -5,7 +5,7 @@ CFLAGS += $(EXTRA_FLAGS)
 
 LDFLAGS =
 ifeq ($(UNAME), Linux)
-	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -lboost_system -lboost_filesystem
+	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -lboost_system -lboost_filesystem -lpthread
 endif
 ifeq ($(UNAME), Darwin) # macOS
 	LDFLAGS += -L/usr/local/include -lboost_system -lboost_filesystem
