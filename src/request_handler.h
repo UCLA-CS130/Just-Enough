@@ -16,6 +16,19 @@ class Request {
     public:
         static std::unique_ptr<Request> Parse(const std::string& raw_request);
 
+        /*
+         * Mutators
+         */
+
+        void set_uri(const std::string &uri)
+        {
+          uri_ = uri;
+        }
+
+        /*
+         * Accessors
+         */
+
         std::string raw_request() const;
         std::string method() const;
         std::string uri() const;
@@ -31,7 +44,6 @@ class Request {
         std::string version_;
         std::string method_;
         Headers headers_;
-        std::string raw_request_;
         std::string body_;
 };
 

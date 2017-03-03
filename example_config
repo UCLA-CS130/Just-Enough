@@ -11,4 +11,9 @@ path /echo EchoHandler {}
 
 path /status StatusHandler {}
 
+path /proxy ProxyHandler {
+  remote_host google.com;
+  remote_port 80;
+}
+
 default NotFoundHandler {}
