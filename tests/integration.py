@@ -414,7 +414,9 @@ class Test:
                 for thread in threads:
                     thread.join()
                 time2 = time.time()
-                print(time2-time1)
+                if(time2-time1> 2.0):
+                    return "multithreading didnt work"
+
                 return Test.PASS
 
 
