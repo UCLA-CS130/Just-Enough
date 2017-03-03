@@ -46,6 +46,7 @@ bool SyncClient::Write(const std::string& message)
 {
   boost::asio::streambuf request;
   std::ostream request_stream(&request);
+  request_stream << message;
 
   // TODO: stream the response if it doesn't all send at first, and give up
   // after a reasonable amount of time / number of attempts.
@@ -63,16 +64,31 @@ bool SyncClient::Write(const std::string& message)
 bool SyncClient::Read(std::string& response)
 {
   boost::asio::streambuf boost_response;
+  boost::system::error_code error;
+
   // Read until EOF.
   // TODO: this probably won't work if the remote host doesn't close the socket
-  // (e.g. with 'Connection: keep-alive' set in HTTP headers). Should look for
+  // (e.g. with 'Connection: keep-alive' set in request's HTTP headers). Should look for
   // content-length and behave appropriately.
-  boost::asio::read(*boost_guts_->socket_, boost_response);
+  std::cout << "here" << std::endl;
+  while (boost::asio::read(*boost_guts_->socket_, boost_response,
+        boost::asio::transfer_at_least(1), error)) {
+    std::cout << "there" << std::endl;
+    // thanks to Alex Hesselgrave for finding the only way to convert a Boost
+    // streambuf into a string known to man or elf.
+    std::istream is(&boost_response);
+    std::string tmp_str;
+    is >> tmp_str;
+    std::cout << "got headers: " << tmp_str << std::endl;
+    response += tmp_str + "\r\n\r\n";
 
-  // thanks to Alex Hesselgrave for solving the mystery of turning a boost
-  // streambuf into a string
-  std::istream is(&boost_response);
-  is >> response;
+    if (error == boost::asio::error::eof) {
+      break;
+    } else if (error) {
+      std::cerr << "Got error while reading: " << error.message() << std::endl;
+      return false;
+    }
+  }
 
   return true;
 }
