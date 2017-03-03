@@ -68,13 +68,19 @@ std::unique_ptr<Request> Request::Parse(const string& raw_request) {
         // as per https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html
     }
 
-    req->raw_request_ = raw_request;
-
     return req;
 }
 
 string Request::raw_request() const {
-    return raw_request_;
+    std::stringstream raw_request;
+    raw_request << method() << " " << uri() << " " << version() << "\r\n";
+    Headers headers;
+    for (auto const& header : headers) {
+        raw_request << header.first << " " << header.second << "\r\n";
+    }
+    raw_request << "\r\n";
+    raw_request << body_;
+    return raw_request.str();
 }
 string Request::method() const {
     return method_;
