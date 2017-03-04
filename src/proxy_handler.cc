@@ -7,15 +7,20 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix,
 {
   uri_prefix_ = uri_prefix;
 
-  int server_location = 0; // which statement in the child block the
+  for (auto const& stmt : config.statements_) {
+    if (stmt->tokens_.size() == 3 && stmt->tokens_[2] == "ProxyHandler" &&
+        stmt->tokens_[1] == uri_prefix) {
+      int server_location = 0; // which statement in the child block the
       // server is in
-  if (config.statements_[0]->tokens_[0] == "remote_port") {
-    server_location = 1;
+      if (stmt->child_block_->statements_[0]->tokens_[0] == "remote_port") {
+        server_location = 1;
+      }
+      remote_host_ =
+        stmt->child_block_->statements_[server_location]->tokens_[1];
+      remote_port_ =
+        stmt->child_block_->statements_[1-server_location]->tokens_[1];
+    }
   }
-  remote_host_ =
-    config.statements_[server_location]->tokens_[1];
-  remote_port_ =
-    config.statements_[1-server_location]->tokens_[1];
 
   return RequestHandler::OK;
 }
@@ -62,7 +67,14 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     return RequestHandler::Error;
   }
 
-  *response = ParseRawResponse(response_str);
+  // copy parsed response into given response
+  Response r = ParseRawResponse(response_str);
+  response->SetStatus(r.status());
+  auto hdrs = response->headers();
+  for (auto const& hdr : hdrs) {
+    response->AddHeader(hdr.first, hdr.second);
+  }
+  response->SetBody(r.body());
 
   if (response->status() == Response::code_302_found) {
     Request redirect_request(request);
@@ -139,6 +151,7 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
     header_value = raw_response.substr(start, end - start);
 
     if (rc == Response::code_302_found && header_name == "Location") {
+      std::cerr << "ProxyHandler::ParseRawResponse: Got 302" << std::endl;
       if (header_value[0] == '/') { // new URI on same host
         redirect_uri_ = header_value;
       } else { // new host

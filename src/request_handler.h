@@ -88,17 +88,33 @@ class Response {
             code_500_internal_error = 500,
         };
 
+        using Headers = std::vector<std::pair<std::string, std::string>>;
+
+        /*
+         * Mutators
+         */
         void SetStatus(const ResponseCode response_code);
-        ResponseCode status() const;
         void AddHeader(const std::string& header_name, const std::string& header_value);
         void SetBody(const std::string& body);
+
+        /*
+         * Accessors
+         */
+        ResponseCode status() const;
+        Headers headers() const
+        {
+          return Headers(headers_);
+        }
+        std::string body() const
+        {
+          return body_;
+        }
 
         std::string ToString();
 
     private:
         ResponseCode code_;
         std::string body_;
-        using Headers = std::vector<std::pair<std::string, std::string>>;
         Headers headers_;
 };
 
