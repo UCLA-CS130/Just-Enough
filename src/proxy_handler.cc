@@ -7,20 +7,16 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix,
 {
   uri_prefix_ = uri_prefix;
 
-  for (auto const& stmt : config.statements_) {
-    if (stmt->tokens_.size() == 3 && stmt->tokens_[2] == "ProxyHandler" &&
-        stmt->tokens_[1] == uri_prefix) {
-      int server_location = 0; // which statement in the child block the
-          // server is in
-      if (stmt->child_block_->statements_[0]->tokens_[0] == "remote_port") {
-        server_location = 1;
-      }
-      remote_host_ =
-        stmt->child_block_->statements_[server_location]->tokens_[1];
-      remote_port_ =
-        stmt->child_block_->statements_[1-server_location]->tokens_[1];
-    }
+  int server_location = 0; // which statement in the child block the
+      // server is in
+  if (config.statements_[0]->tokens_[0] == "remote_port") {
+    server_location = 1;
   }
+  remote_host_ =
+    config.statements_[server_location]->tokens_[1];
+  remote_port_ =
+    config.statements_[1-server_location]->tokens_[1];
+
   return RequestHandler::OK;
 }
 
@@ -30,6 +26,9 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
   Request proxied_req(request);
   proxied_req.set_uri(request.uri().substr(uri_prefix_.size(),
         request.uri().size()));
+  if (proxied_req.uri().size() == 0) {
+    proxied_req.set_uri("/");
+  }
   // make sure keep alive is off
   proxied_req.remove_header("Connection");
   proxied_req.add_header("Connection", "Close");
