@@ -66,11 +66,15 @@ class TemporaryConfigFile:
         else:
             defaultHandlerString = ''
 
+        threadsString = ""
+        if 'threads' in self.config:
+            threadsString = 'threads %d;' %self.config['threads']
         cnfg = (
                 'port %d;\n'
                 '%s\n'
                 '%s\n'
-                % (self.config['port'], '\n'.join(handlerStrings), defaultHandlerString)
+                '%s\n'
+                % (self.config['port'], threadsString, '\n'.join(handlerStrings), defaultHandlerString,)
                 )
 
         if SHOW_GENERATED_CONFIG_INLINE:
@@ -405,7 +409,7 @@ class Test:
                     return "expected 200 OK, but got: " + str(code) + ": " + content
             with WebserverRunningContext(filepath):
                 threads = []
-                for i in range(8):
+                for i in range(5):
                     thread = Thread(target = thread_func)
                     threads.append(thread)
                 #timing this loop
@@ -416,6 +420,7 @@ class Test:
                     thread.join()
                 time2 = time.time()
                 timesec = delaytime/1000000
+                print(time2-time1)
                 if(time2-time1> 2*timesec):
                     return "multithreading didnt work"
 
@@ -423,6 +428,43 @@ class Test:
 
 
 
+    def test_multithreaded2():
+        """ tests if multithreading works correctly
+        """
+        delaytime = 1000000
+        config = {
+                'filename': 'temp_config',
+                'port': 8080,
+                'threads': 2,
+                'handlers': [
+                    ('/delay','DelayHandler',['delay %s'%delaytime]),
+                    ],
+                }
+
+        with TemporaryConfigFile(config) as filepath:
+            def thread_func():
+                code, content = makeWebserverRequest(config, '/delay')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+            with WebserverRunningContext(filepath):
+                threads = []
+                for i in range(2):
+                    thread = Thread(target = thread_func)
+                    threads.append(thread)
+                #timing this loop
+                time1 = time.time()
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join()
+                time2 = time.time()
+                timesec = delaytime/1000000
+                print(time2-time1)
+                if(time2-time1> 1.5*timesec):
+                    return "multithreading didnt work"
+
+                return Test.PASS
 
 def runTests():
     # get all methods of Test container
