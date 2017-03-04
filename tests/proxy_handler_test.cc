@@ -20,18 +20,9 @@ public:
 
   ProxyHandlerTest()
   {
-    std::string config_str = "port 8080" \
-        "port 8080;\r\n" \
-        "path / StaticHandler {\r\n" \
-        "  root /var/www/html;\r\n" \
-        "}\r\n" \
-        "path /echo EchoHandler {}\r\n" \
-        "path /status StatusHandler {}\r\n" \
-        "path /proxy ProxyHandler {\r\n" \
-        "  remote_host google.com;\r\n" \
-        "  remote_port 80;\r\n" \
-        "}\r\n" \
-        "default NotFoundHandler {}\r\n";
+    std::string config_str = \
+      "remote_host google.com;\n" \
+      "remote_port 80;\n";
     std::istringstream config_stream(config_str);
     if (!parser_.Parse(&config_stream, &conf_)) {
       ADD_FAILURE() << "Failed to parse configuration:\n.";
@@ -45,6 +36,7 @@ public:
 	void TearDown() {
 		if (handler_ != nullptr)
 			delete handler_;
+      handler_ = nullptr;
 	}
 };
 
