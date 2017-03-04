@@ -20,6 +20,7 @@ SyncClient::BoostGuts::BoostGuts(std::unique_ptr<boost::asio::io_service> io_ser
 
 bool SyncClient::Connect(const std::string& server, const std::string& port)
 {
+  std::cerr << "server:port: " << server << ":" << port << std::endl;
   tcp::resolver::query query(server, port);
   tcp::resolver::iterator endpoint_iterator =
     boost_guts_->resolver_->resolve(query);
@@ -49,6 +50,9 @@ bool SyncClient::Write(const std::string& message)
   boost::asio::streambuf request;
   std::ostream request_stream(&request);
   request_stream << message;
+
+  std::cerr << "sending msg:" << std::endl;
+  std::cerr << message;
 
   // TODO: stream the response if it doesn't all send at first, and give up
   // after a reasonable amount of time / number of attempts.
