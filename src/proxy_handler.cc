@@ -67,7 +67,7 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
 }
 
 // TODO: this assume raw_response is valid HTTP
-Response ParseRawResponse(const std::string& raw_response)
+Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
 {
   Response response;
 
