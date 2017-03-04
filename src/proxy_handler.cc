@@ -63,11 +63,20 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     return RequestHandler::Error;
   }
 
+  *response = ParseRawResponse(response_str);
+
+  if (response->status() == Response::code_302_found) {
+    Request redirect_request(request);
+    redirect_request.set_uri(redirect_uri_);
+    return HandleRequest(redirect_request, response);
+  }
+
   return RequestHandler::OK;
 }
 
 // TODO: this assume raw_response is valid HTTP
-Response ParseRawResponse(const std::string& raw_response)
+// TODO: factor this out into a more appropriate location
+Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
 {
   Response response;
 
@@ -86,7 +95,7 @@ Response ParseRawResponse(const std::string& raw_response)
       break;
 
     case 302:
-      // TODO: carry out redirect
+      rc = Response::code_302_found;
       break;
 
     case 400:
@@ -129,6 +138,26 @@ Response ParseRawResponse(const std::string& raw_response)
     start = end + 1;
     end = raw_response.find("\r\n", start);
     header_value = raw_response.substr(start, end - start);
+
+    if (rc == Response::code_302_found && header_name == "Location") {
+      if (header_value[0] == '/') { // new URI on same host
+        redirect_uri_ = header_value;
+      } else { // new host
+        // extract new host, uri
+        size_t uri_pos;
+        if (raw_response.find("http://") == 0) {
+          uri_pos = raw_response.find("/", 7);
+        } else {
+          uri_pos = raw_response.find("/");
+        }
+        remote_host_ = raw_response.substr(0, uri_pos);
+        // TODO: this assumes remote port is unspecified. if Location looks
+        // like "http://foo.com:1234/bar", then remote_host_ will be
+        // http://foo.com:1234 and remote_port_ will still have something in it
+        redirect_uri_ = raw_response.substr(uri_pos,
+            raw_response.size() - uri_pos);
+      }
+    }
 
     response.AddHeader(header_name, header_value);
   }
