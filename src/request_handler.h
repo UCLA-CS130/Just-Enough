@@ -78,6 +78,8 @@ class Response {
         enum ResponseCode {
             code_200_OK = 200,
 
+            code_302_found = 302, // aka redirect
+
             code_400_bad_request = 400,
             code_401_unauthorized = 401,
             code_403_forbidden = 403,

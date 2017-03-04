@@ -37,6 +37,8 @@ class ProxyHandler : public RequestHandler {
 
       // leave remote port as a string b/c boost needs it in that form anyway
       std::string remote_host_, remote_port_;
+
+      std::string redirect_uri_;
 };
 
 REGISTER_REQUEST_HANDLER(ProxyHandler);

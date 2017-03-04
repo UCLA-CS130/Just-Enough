@@ -25,6 +25,8 @@ bool SyncClient::Connect(const std::string& server, const std::string& port)
     boost_guts_->resolver_->resolve(query);
   tcp::resolver::iterator end;
 
+  boost_guts_->socket_->close();
+
   // Try each endpoint until we successfully establish a connection.
   boost::system::error_code error = boost::asio::error::host_not_found;
   while (error && endpoint_iterator != end)
@@ -67,20 +69,12 @@ bool SyncClient::Read(std::string& response)
   boost::system::error_code error;
 
   // Read until EOF.
-  // TODO: this probably won't work if the remote host doesn't close the socket
-  // (e.g. with 'Connection: keep-alive' set in request's HTTP headers). Should look for
-  // content-length and behave appropriately.
-  std::cout << "here" << std::endl;
+  std::ostringstream response_stream;
   while (boost::asio::read(*boost_guts_->socket_, boost_response,
         boost::asio::transfer_at_least(1), error)) {
-    std::cout << "there" << std::endl;
     // thanks to Alex Hesselgrave for finding the only way to convert a Boost
     // streambuf into a string known to man or elf.
-    std::istream is(&boost_response);
-    std::string tmp_str;
-    is >> tmp_str;
-    std::cout << "got headers: " << tmp_str << std::endl;
-    response += tmp_str + "\r\n\r\n";
+    response_stream << &boost_response;
 
     if (error == boost::asio::error::eof) {
       break;
@@ -89,6 +83,8 @@ bool SyncClient::Read(std::string& response)
       return false;
     }
   }
+
+  response = response_stream.str();
 
   return true;
 }
