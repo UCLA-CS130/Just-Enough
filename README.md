@@ -1,6 +1,8 @@
 # Just Enough
 ## Simple HTTP Server
 
+
+
 [![Build Status](https://travis-ci.org/UCLA-CS130/Just-Enough.svg?branch=master)](https://travis-ci.org/UCLA-CS130/Just-Enough)
 
 ## To build:
@@ -47,4 +49,3 @@ To add a new handler, use the `REGISTER_REQUEST_HANDLER` macro with the classnam
 These are defined in request.cc and response.cc.
 
 Some string processing utilities exist in `utils.h`.
-

@@ -1,6 +1,6 @@
 #pragma once
 #include "request_handler.h"
-const size_t DEFAULT_DELAY = 1000;
+const size_t DEFAULT_DELAY = 1000000;
 
 //Used for testing multi-threading only
 class DelayHandler: public RequestHandler{

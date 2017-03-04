@@ -8,7 +8,7 @@ using std::string;
 RequestHandler::Status DelayHandler::Init(const std::string& uri_prefix, const NginxConfig& config) {
   delay_ = DEFAULT_DELAY;
   for(size_t i = 0; i < config.statements_.size(); i++) {
-    if (config.statements_[i]->tokens_.size() == 1){
+    if (config.statements_[i]->tokens_.size() == 2){
         if(config.statements_[i]->tokens_[0] == "delay"){
           delay_ = std::stoi(config.statements_[i]->tokens_[1]);
         }
