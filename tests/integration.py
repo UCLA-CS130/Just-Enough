@@ -388,11 +388,12 @@ class Test:
     def test_multithreaded():
         """ tests if multithreading works correctly
         """
+        delaytime = 100000
         config = {
                 'filename': 'temp_config',
                 'port': 8080,
                 'handlers': [
-                    ('/delay','DelayHandler',[]),
+                    ('/delay','DelayHandler',['delay %s'%delaytime]),
                     ],
                 }
 
@@ -414,7 +415,8 @@ class Test:
                 for thread in threads:
                     thread.join()
                 time2 = time.time()
-                if(time2-time1> 2.0):
+                timesec = delaytime/1000000
+                if(time2-time1> 2*timesec):
                     return "multithreading didnt work"
 
                 return Test.PASS
