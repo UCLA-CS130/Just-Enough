@@ -20,7 +20,7 @@ SyncClient::BoostGuts::BoostGuts(std::unique_ptr<boost::asio::io_service> io_ser
 
 bool SyncClient::Connect(const std::string& server, const std::string& port)
 {
-  std::cerr << "server:port: " << server << ":" << port << std::endl;
+  std::cerr << "server:port == " << server << ":" << port << std::endl;
   tcp::resolver::query query(server, port);
   tcp::resolver::iterator endpoint_iterator =
     boost_guts_->resolver_->resolve(query);
