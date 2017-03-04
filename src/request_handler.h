@@ -25,6 +25,22 @@ class Request {
           uri_ = uri;
         }
 
+        void add_header(const std::string &lhs, const std::string &rhs)
+        {
+          headers_.push_back(std::pair<std::string,std::string>(lhs, rhs));
+        }
+
+        void remove_header(const std::string &lhs)
+        {
+          Headers::iterator it;
+          for (it = headers_.begin() ; it != headers_.end(); ++it) {
+            if ((*it).first == lhs) {
+              headers_.erase(it);
+              return;
+            }
+          }
+        }
+
         /*
          * Accessors
          */
