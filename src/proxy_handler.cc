@@ -7,20 +7,19 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix,
 {
   uri_prefix_ = uri_prefix;
 
-  for (auto const& stmt : config.statements_) {
-    if (stmt->tokens_.size() == 3 && stmt->tokens_[2] == "ProxyHandler" &&
-        stmt->tokens_[1] == uri_prefix) {
-      int server_location = 0; // which statement in the child block the
-      // server is in
-      if (stmt->child_block_->statements_[0]->tokens_[0] == "remote_port") {
-        server_location = 1;
-      }
-      remote_host_ =
-        stmt->child_block_->statements_[server_location]->tokens_[1];
-      remote_port_ =
-        stmt->child_block_->statements_[1-server_location]->tokens_[1];
-    }
+  int server_location = 0;
+  if (config.statements_[0]->tokens_[0] == "remote_port") {
+    server_location = 1;
   }
+  remote_host_ =
+    config.statements_[server_location]->tokens_[1];
+  remote_port_ =
+    config.statements_[1-server_location]->tokens_[1];
+
+  std::cerr << "ProxyHandler::Init: config: " << std::endl;
+  std::cerr << config.ToString() << std::endl;
+  std::cerr << "ProxyHandler::Init: remote_host_: " << remote_host_ << std::endl;
+  std::cerr << "ProxyHandler::Init: remote_port_: " << remote_port_ << std::endl;
 
   return RequestHandler::OK;
 }
@@ -28,6 +27,12 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix,
 RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     Response* response)
 {
+  if (remote_host_.size() == 0 || remote_port_.size() == 0) {
+    std::cerr << "ProxyHandler::HandleRequest: remote_host_ or remote_port_ ";
+    std::cerr << "are empty. Cannot serve request." << std::endl;
+    return RequestHandler::Error;
+  }
+
   Request proxied_req(request);
   proxied_req.set_uri(request.uri().substr(uri_prefix_.size(),
         request.uri().size()));
@@ -47,6 +52,9 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     std::cerr << std::endl;
     return RequestHandler::Error;
   }
+
+  std::cerr << "ProxyHandler::Init: remote_host_: " << remote_host_ << std::endl;
+  std::cerr << "ProxyHandler::Init: remote_port_: " << remote_port_ << std::endl;
 
   if (!client_->Connect(remote_host_, remote_port_)) {
     std::cerr << "ProxyHandler::HandleRequest failed to connect to ";
