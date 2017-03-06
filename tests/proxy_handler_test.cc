@@ -3,48 +3,48 @@
 #include "proxy_handler.h"
 
 class ProxyHandlerTest : public ::testing::Test {
-public:
-	ProxyHandler* handler_;
-  NginxConfig *conf_;
-  RequestHandler::Status status_;
+  public:
+    ProxyHandler* handler_;
+    NginxConfig *conf_;
+    RequestHandler::Status status_;
 
-	Request GetRequest(const std::string& uri) {
-		std::string request_str = \
-			"GET " + uri + " HTTP/1.1\r\n" \
-			"User-Agent: curl/7.35.0\r\n" \
-      "Accept: */*\r\n\r\n";
+    Request GetRequest(const std::string& uri) {
+      std::string request_str = \
+                                "GET " + uri + " HTTP/1.1\r\n" \
+                                "User-Agent: curl/7.35.0\r\n" \
+                                "Accept: */*\r\n\r\n";
 
-		auto r = Request::Parse(request_str);
-		return *r.get();
-	}
-
-  void SetConfig(const std::string& host, const std::string& port)
-  {
-    if (conf_ != nullptr) {
-      delete conf_;
+      auto r = Request::Parse(request_str);
+      return *r.get();
     }
-    conf_ = new NginxConfig();
-    conf_->statements_.push_back(std::shared_ptr<NginxConfigStatement>(
-          new NginxConfigStatement()));
-    conf_->statements_[0]->tokens_.push_back("remote_host");
-    conf_->statements_[0]->tokens_.push_back(host);
-    conf_->statements_.push_back(std::shared_ptr<NginxConfigStatement>(
-          new NginxConfigStatement()));
-    conf_->statements_[1]->tokens_.push_back("remote_port");
-    conf_->statements_[1]->tokens_.push_back(port);
-  }
 
-  void SetUp() {
-    handler_ = new ProxyHandler();
-    conf_ = nullptr;
-  }
-
-  void TearDown() {
-    delete handler_;
-    if (conf_ != nullptr) {
-      delete conf_;
+    void SetConfig(const std::string& host, const std::string& port)
+    {
+      if (conf_ != nullptr) {
+        delete conf_;
+      }
+      conf_ = new NginxConfig();
+      conf_->statements_.push_back(std::shared_ptr<NginxConfigStatement>(
+            new NginxConfigStatement()));
+      conf_->statements_[0]->tokens_.push_back("remote_host");
+      conf_->statements_[0]->tokens_.push_back(host);
+      conf_->statements_.push_back(std::shared_ptr<NginxConfigStatement>(
+            new NginxConfigStatement()));
+      conf_->statements_[1]->tokens_.push_back("remote_port");
+      conf_->statements_[1]->tokens_.push_back(port);
     }
-  }
+
+    void SetUp() {
+      handler_ = new ProxyHandler();
+      conf_ = nullptr;
+    }
+
+    void TearDown() {
+      delete handler_;
+      if (conf_ != nullptr) {
+        delete conf_;
+      }
+    }
 };
 
 TEST_F(ProxyHandlerTest, ResponseParsingTest)
