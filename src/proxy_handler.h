@@ -17,13 +17,6 @@ class ProxyHandler : public RequestHandler {
       virtual Status HandleRequest(const Request& request,
               Response* response);
 
-      virtual ~ProxyHandler()
-      {
-        if (client_ != nullptr) {
-          delete client_;
-        }
-      }
-
       virtual std::string type() const {
           return "ProxyHandler";
       }
@@ -31,7 +24,7 @@ class ProxyHandler : public RequestHandler {
       Response ParseRawResponse(const std::string& response);
     private:
 
-      SyncClient *client_;
+      std::unique_ptr<SyncClient> client_;
 
       std::string uri_prefix_;
 

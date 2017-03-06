@@ -7,6 +7,17 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix,
 {
   uri_prefix_ = uri_prefix;
 
+  /*
+   * We can accept one of two formats inside of the ProxyHandler's block.
+   * Format 1:
+   *  remote_host website.com;
+   *  remote_port 80;
+   * Format 2:
+   *  remote_port 80;
+   *  remote_host website.com;
+   * The variable server_location specifies which format in terms of the
+   * server-specifying statement's location in config.statements_.
+   */
   int server_location = 0;
   if (config.statements_[0]->tokens_[0] == "remote_port") {
     server_location = 1;
@@ -40,12 +51,7 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
   proxied_req.remove_header("Host");
   proxied_req.add_header("Host", remote_host_ + ":" + remote_port_);
 
-  client_ = new (std::nothrow) SyncClient();
-  if (client_ == nullptr) {
-    std::cerr << "ProxyHandler::HandleRequest failed to allocate AsyncClient.";
-    std::cerr << std::endl;
-    return RequestHandler::Error;
-  }
+  client_ = std::unique_ptr<SyncClient>(new SyncClient());
 
   if (!client_->Connect(remote_host_, remote_port_)) {
     std::cerr << "ProxyHandler::HandleRequest failed to connect to ";
@@ -96,36 +102,7 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
   start = raw_response.find(" ") + 1; // skip version
   end = raw_response.find(" ", start);
   int raw_response_code = std::stoi(raw_response.substr(start, end - start));
-  Response::ResponseCode rc;
-  switch(raw_response_code) {
-    case 200:
-      rc = Response::code_200_OK;
-      break;
-
-    case 301:
-      rc = Response::code_301_moved;
-      break;
-    case 302:
-      rc = Response::code_302_found;
-      break;
-
-    case 400:
-      rc = Response::code_400_bad_request;
-      break;
-    case 401:
-      rc = Response::code_401_unauthorized;
-      break;
-    case 403:
-      rc = Response::code_403_forbidden;
-      break;
-    case 404:
-      rc = Response::code_404_not_found;
-      break;
-
-    case 500:
-      rc = Response::code_500_internal_error;
-      break;
-  }
+  auto rc = (Response::ResponseCode) raw_response_code;
   response.SetStatus(rc);
 
   // get all headers
@@ -140,13 +117,14 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
       break;
     }
 
-    end = raw_response.find(" ", start);
+    end = raw_response.find(":", start);
     header_name = raw_response.substr(start, end - start);
-    if (header_name[header_name.size() - 1] == ':') {
-      header_name.resize(header_name.size() - 1);
-    }
 
     start = end + 1;
+    // skip over whitespace
+    while (raw_response[start] == ' ') {
+      start++;
+    }
     end = raw_response.find("\r\n", start);
     header_value = raw_response.substr(start, end - start);
 

@@ -79,7 +79,7 @@ string Request::raw_request() const {
         raw_request << hdr.first << ": " << hdr.second << "\r\n";
     }
     raw_request << "\r\n";
-    raw_request << body_;
+    raw_request << body();
     return raw_request.str();
 }
 string Request::method() const {
