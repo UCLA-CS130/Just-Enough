@@ -16,13 +16,6 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix,
   remote_port_ =
     config.statements_[1-server_location]->tokens_[1];
 
-  /*
-  std::cerr << "ProxyHandler::Init: config: " << std::endl;
-  std::cerr << config.ToString() << std::endl;
-  std::cerr << "ProxyHandler::Init: remote_host_: " << remote_host_ << std::endl;
-  std::cerr << "ProxyHandler::Init: remote_port_: " << remote_port_ << std::endl;
-  */
-
   return RequestHandler::OK;
 }
 
@@ -54,11 +47,6 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     return RequestHandler::Error;
   }
 
-  /*
-  std::cerr << "ProxyHandler::Init: remote_host_: " << remote_host_ << std::endl;
-  std::cerr << "ProxyHandler::Init: remote_port_: " << remote_port_ << std::endl;
-  */
-
   if (!client_->Connect(remote_host_, remote_port_)) {
     std::cerr << "ProxyHandler::HandleRequest failed to connect to ";
     std::cerr << remote_host_ << ":" << remote_port_ << std::endl;
@@ -78,11 +66,6 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     return RequestHandler::Error;
   }
 
-  /*
-  std::cerr << "got response:" << std::endl;
-  std::cerr << response_str;
-  */
-
   // copy parsed response into given response
   *response = ParseRawResponse(response_str);
 
@@ -92,10 +75,6 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     redirect_request.set_uri(redirect_uri_);
     redirect_request.remove_header("Host");
     redirect_request.add_header("Host", redirect_host_);
-    std::cerr << "recursing with this request: " << std::endl;
-    std::cerr << redirect_request.raw_request();
-    std::cerr << "redirect_host_: " << redirect_host_ << std::endl;
-    std::cerr << "redirect_uri_: " << redirect_uri_ << std::endl;
     uri_prefix_ = "";
     return HandleRequest(redirect_request, response);
   }
@@ -148,11 +127,6 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
       break;
   }
   response.SetStatus(rc);
-  /*
-  std::cerr << "ProxyHandler::ParseRawResponse: raw_response response_code: " \
-    << raw_response.substr(start, end - start) << "(" << raw_response_code << \
-    "," << response.status() << ")" << std::endl;
-  */
 
   // get all headers
   std::string header_name, header_value;
@@ -194,10 +168,6 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
         uri_pos = header_value.find("/", uri_pos);
         redirect_host_ = header_value.substr(0, uri_pos);
         redirect_uri_ = header_value.substr(uri_pos);
-        /*
-        std::cerr << "redirect_host_: " << redirect_host_ << std::endl;
-        std::cerr << "redirect_uri_: " << redirect_uri_ << std::endl;
-        */
       }
     }
 
@@ -205,11 +175,6 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
   }
 
   response.SetBody(raw_response.substr(start, raw_response.size() - start));
-
-  /*
-  std::cerr << "ProxyHandler::ParseRawResponse: response:" << std::endl;
-  std::cerr << response.ToString() << std::endl;
-  */
 
   return response;
 }
