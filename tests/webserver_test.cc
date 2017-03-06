@@ -82,7 +82,7 @@ TEST(WebserverTest, startThreads) {
     opts.thread = 8;
     MockWebserverRun webserver(&opts);
 
-    for (int i = 0; i < opts.thread; i++) {
+    for (size_t i = 0; i < opts.thread; i++) {
         EXPECT_CALL(webserver, runThread(i))
             .Times(1)
             .WillOnce(Return());

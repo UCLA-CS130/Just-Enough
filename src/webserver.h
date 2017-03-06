@@ -13,6 +13,10 @@ class Webserver {
 
         Webserver(Options* opt);
 
+        virtual ~Webserver()
+        {
+        }
+
         virtual void run();
         virtual void runThread(int threadIndex);
 

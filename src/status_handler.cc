@@ -3,10 +3,13 @@
 #include <iostream>
 
 RequestHandler::Status StatusHandler::Init(const std::string& uri_prefix, const NginxConfig& config) {
+    (void) uri_prefix;
+    (void) config;
     return RequestHandler::OK;
 }
 
 RequestHandler::Status StatusHandler::HandleRequest(const Request& req, Response* resp) {
+    (void) req;
     Webserver* ws = Webserver::instance;
     if ( ! ws) {
         std::cerr << "StatusHandler failed: No global webserver instance." << std::endl;

@@ -16,10 +16,12 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix,
   remote_port_ =
     config.statements_[1-server_location]->tokens_[1];
 
+  /*
   std::cerr << "ProxyHandler::Init: config: " << std::endl;
   std::cerr << config.ToString() << std::endl;
   std::cerr << "ProxyHandler::Init: remote_host_: " << remote_host_ << std::endl;
   std::cerr << "ProxyHandler::Init: remote_port_: " << remote_port_ << std::endl;
+  */
 
   return RequestHandler::OK;
 }
@@ -34,8 +36,7 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
   }
 
   Request proxied_req(request);
-  proxied_req.set_uri(request.uri().substr(uri_prefix_.size(),
-        request.uri().size()));
+  proxied_req.set_uri(request.uri().substr(uri_prefix_.size()));
   if (proxied_req.uri().size() == 0) {
     proxied_req.set_uri("/");
   }
@@ -53,8 +54,10 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     return RequestHandler::Error;
   }
 
+  /*
   std::cerr << "ProxyHandler::Init: remote_host_: " << remote_host_ << std::endl;
   std::cerr << "ProxyHandler::Init: remote_port_: " << remote_port_ << std::endl;
+  */
 
   if (!client_->Connect(remote_host_, remote_port_)) {
     std::cerr << "ProxyHandler::HandleRequest failed to connect to ";
@@ -75,18 +78,25 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     return RequestHandler::Error;
   }
 
-  // copy parsed response into given response
-  Response r = ParseRawResponse(response_str);
-  response->SetStatus(r.status());
-  auto hdrs = response->headers();
-  for (auto const& hdr : hdrs) {
-    response->AddHeader(hdr.first, hdr.second);
-  }
-  response->SetBody(r.body());
+  /*
+  std::cerr << "got response:" << std::endl;
+  std::cerr << response_str;
+  */
 
-  if (response->status() == Response::code_302_found) {
+  // copy parsed response into given response
+  *response = ParseRawResponse(response_str);
+
+  if (response->status() == Response::code_302_found ||
+      response->status() == Response::code_301_moved) {
     Request redirect_request(request);
     redirect_request.set_uri(redirect_uri_);
+    redirect_request.remove_header("Host");
+    redirect_request.add_header("Host", redirect_host_);
+    std::cerr << "recursing with this request: " << std::endl;
+    std::cerr << redirect_request.raw_request();
+    std::cerr << "redirect_host_: " << redirect_host_ << std::endl;
+    std::cerr << "redirect_uri_: " << redirect_uri_ << std::endl;
+    uri_prefix_ = "";
     return HandleRequest(redirect_request, response);
   }
 
@@ -113,6 +123,9 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
       rc = Response::code_200_OK;
       break;
 
+    case 301:
+      rc = Response::code_301_moved;
+      break;
     case 302:
       rc = Response::code_302_found;
       break;
@@ -135,6 +148,11 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
       break;
   }
   response.SetStatus(rc);
+  /*
+  std::cerr << "ProxyHandler::ParseRawResponse: raw_response response_code: " \
+    << raw_response.substr(start, end - start) << "(" << raw_response_code << \
+    "," << response.status() << ")" << std::endl;
+  */
 
   // get all headers
   std::string header_name, header_value;
@@ -158,24 +176,28 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
     end = raw_response.find("\r\n", start);
     header_value = raw_response.substr(start, end - start);
 
-    if (rc == Response::code_302_found && header_name == "Location") {
-      std::cerr << "ProxyHandler::ParseRawResponse: Got 302" << std::endl;
+    if ((rc == Response::code_302_found || rc == Response::code_301_moved) &&
+        header_name == "Location") {
       if (header_value[0] == '/') { // new URI on same host
         redirect_uri_ = header_value;
       } else { // new host
         // extract new host, uri
-        size_t uri_pos;
-        if (raw_response.find("http://") == 0) {
-          uri_pos = raw_response.find("/", 7);
-        } else {
-          uri_pos = raw_response.find("/");
+        size_t uri_pos = 0;
+        remote_host_ = header_value;
+        if (remote_host_.find("http://") == 0) {
+          remote_host_ = remote_host_.substr(strlen("http://"));
+          uri_pos += strlen("http://");
         }
-        remote_host_ = raw_response.substr(0, uri_pos);
-        // TODO: this assumes remote port is unspecified. if Location looks
-        // like "http://foo.com:1234/bar", then remote_host_ will be
-        // http://foo.com:1234 and remote_port_ will still have something in it
-        redirect_uri_ = raw_response.substr(uri_pos,
-            raw_response.size() - uri_pos);
+        if (remote_host_[remote_host_.size()-1] == '/') {
+          remote_host_.resize(remote_host_.size()-1);
+        }
+        uri_pos = header_value.find("/", uri_pos);
+        redirect_host_ = header_value.substr(0, uri_pos);
+        redirect_uri_ = header_value.substr(uri_pos);
+        /*
+        std::cerr << "redirect_host_: " << redirect_host_ << std::endl;
+        std::cerr << "redirect_uri_: " << redirect_uri_ << std::endl;
+        */
       }
     }
 
@@ -183,6 +205,11 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
   }
 
   response.SetBody(raw_response.substr(start, raw_response.size() - start));
+
+  /*
+  std::cerr << "ProxyHandler::ParseRawResponse: response:" << std::endl;
+  std::cerr << response.ToString() << std::endl;
+  */
 
   return response;
 }

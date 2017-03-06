@@ -27,10 +27,16 @@ TEST_F(SyncClientTest, IntegratedSanity)
   ASSERT_TRUE(client.Read(response));
   ASSERT_TRUE(response.size() > 0);
 
+  std::cerr << "response: " << std::endl;
+  std::cerr << response;
+
   // site 2
   ASSERT_TRUE(client.Connect("ipecho.net", "80"));
   ASSERT_TRUE(client.Write(GetRequestStr("ipecho.net", "/plain")));
 
   ASSERT_TRUE(client.Read(response));
   ASSERT_TRUE(response.size() > 0);
+
+  std::cerr << "response: " << std::endl;
+  std::cerr << response;
 }

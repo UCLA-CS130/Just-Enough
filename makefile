@@ -11,7 +11,7 @@ ifeq ($(UNAME), Darwin) # macOS
 	LDFLAGS += -L/usr/local/include -lboost_system -lboost_filesystem
 endif
 
-DEBUG_FLAGS = -g -Wall -Werror
+DEBUG_FLAGS = -g -Wall -Wextra -Werror
 
 COV_DIR = coverage
 COVCC = gcov
@@ -27,7 +27,7 @@ TEST_OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(TEST_FILES:.cc=.o)))
 
 GTEST_DIR = googletest/googletest
 GMOCK_DIR = googletest/googlemock
-TEST_FLAGS = -isystem $(GTEST_DIR)/include -isystem $(GMOCK_DIR)/include -pthread
+TEST_FLAGS = $(DEBUG_FLAGS) -isystem $(GTEST_DIR)/include -isystem $(GMOCK_DIR)/include -pthread
 
 all: $(OBJ_FILES)
 	@echo "$(C)Linking $(CLR)"
