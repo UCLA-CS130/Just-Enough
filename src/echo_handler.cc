@@ -1,9 +1,7 @@
 #include "echo_handler.h"
 #include <iostream>
 
-RequestHandler::Status EchoHandler::Init(const std::string& uri_prefix, const NginxConfig& config) {
-    (void) uri_prefix;
-    (void) config;
+RequestHandler::Status EchoHandler::Init(const std::string&, const NginxConfig&) {
     return RequestHandler::OK;
 }
 
