@@ -439,7 +439,7 @@ class Test:
     def test_multithreaded():
         """ tests if multithreading works correctly
         """
-        delaytime = 100000
+        delaytime = 200000
         config = {
                 'filename': 'temp_config',
                 'port': 8080,
@@ -478,7 +478,7 @@ class Test:
     def test_multithreaded2():
         """ tests if multithreading works correctly
         """
-        delaytime = 1000000
+        delaytime = 2000000
         config = {
                 'filename': 'temp_config',
                 'port': 8080,
