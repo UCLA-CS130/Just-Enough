@@ -121,7 +121,6 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
     end = raw_response.find(" ", start);
     int raw_response_code = std::stoi(raw_response.substr(start, end - start));
     auto rc = (Response::ResponseCode) raw_response_code;
-    std::cerr << "got rc: " << rc << std::endl;
     response.SetStatus(rc);
 
     // get all headers
