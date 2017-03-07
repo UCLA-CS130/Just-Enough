@@ -67,8 +67,6 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     proxied_req.remove_header("Host");
     proxied_req.add_header("Host", host + ":" + remote_port_);
 
-    client_ = std::unique_ptr<SyncClient>(new SyncClient());
-
     if (!client_->Connect(host, remote_port_)) {
         std::cerr << "ProxyHandler::HandleRequest failed to connect to ";
         std::cerr << host << ":" << remote_port_ << std::endl;
@@ -83,7 +81,7 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
         return RequestHandler::Error;
     }
 
-    std::string response_str;
+    std::string response_str(1024, 0);
     if (!client_->Read(response_str)) {
         std::cerr << "ProxyHandler::HandleRequest failed to read from ";
         std::cerr << host << ":" << remote_port_ << std::endl;
@@ -100,6 +98,7 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
         redirect_request.remove_header("Host");
         redirect_request.add_header("Host", redirect_host_header_);
         uri_prefix_ = "";
+        // sub-call will unlock mtx_
         return HandleRequest(redirect_request, response);
     }
 

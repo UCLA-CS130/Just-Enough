@@ -10,7 +10,7 @@ class ProxyHandler : public RequestHandler {
     public:
         ProxyHandler()
         {
-            client_ = nullptr;
+            client_ = std::unique_ptr<SyncClient>(new SyncClient());
             redirect_ = false;
         }
 
