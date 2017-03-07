@@ -436,7 +436,6 @@ class Test:
                     return "got empty response"
                 return Test.PASS
 
-
     def test_multithreaded():
         """ tests if multithreading works correctly
         """
