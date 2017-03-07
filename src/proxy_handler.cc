@@ -33,11 +33,26 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix,
 RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
         Response* response)
 {
+    if (!redirect_) {
+        mtx_.lock();
+    } else {
+        redirect_ = false;
+    }
+    std::string host;
+
     if (remote_host_.size() == 0 || remote_port_.size() == 0) {
         std::cerr << "ProxyHandler::HandleRequest: remote_host_ or ";
         std::cerr << "remote_port_ are empty. Cannot serve request.";
         std::cerr << std::endl;
+        mtx_.unlock();
         return RequestHandler::Error;
+    }
+
+    if (redirect_host_.size() > 0) {
+        host = redirect_host_;
+        redirect_host_ = "";
+    } else {
+        host = remote_host_;
     }
 
     Request proxied_req(request);
@@ -50,42 +65,45 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request& request,
     proxied_req.add_header("Connection", "Close");
     // update host
     proxied_req.remove_header("Host");
-    proxied_req.add_header("Host", remote_host_ + ":" + remote_port_);
+    proxied_req.add_header("Host", host + ":" + remote_port_);
 
     client_ = std::unique_ptr<SyncClient>(new SyncClient());
 
-    if (!client_->Connect(remote_host_, remote_port_)) {
+    if (!client_->Connect(host, remote_port_)) {
         std::cerr << "ProxyHandler::HandleRequest failed to connect to ";
-        std::cerr << remote_host_ << ":" << remote_port_ << std::endl;
+        std::cerr << host << ":" << remote_port_ << std::endl;
+        mtx_.unlock();
         return RequestHandler::Error;
     }
 
     if (!client_->Write(proxied_req.raw_request())) {
         std::cerr << "ProxyHandler::HandleRequest failed to write to ";
-        std::cerr << remote_host_ << ":" << remote_port_ << std::endl;
+        std::cerr << host << ":" << remote_port_ << std::endl;
+        mtx_.unlock();
         return RequestHandler::Error;
     }
 
     std::string response_str;
     if (!client_->Read(response_str)) {
         std::cerr << "ProxyHandler::HandleRequest failed to read from ";
-        std::cerr << remote_host_ << ":" << remote_port_ << std::endl;
+        std::cerr << host << ":" << remote_port_ << std::endl;
+        mtx_.unlock();
         return RequestHandler::Error;
     }
 
     // copy parsed response into given response
     *response = ParseRawResponse(response_str);
 
-    if (response->status() == Response::code_302_found ||
-            response->status() == Response::code_301_moved) {
+    if (redirect_) {
         Request redirect_request(request);
         redirect_request.set_uri(redirect_uri_);
         redirect_request.remove_header("Host");
-        redirect_request.add_header("Host", redirect_host_);
+        redirect_request.add_header("Host", redirect_host_header_);
         uri_prefix_ = "";
         return HandleRequest(redirect_request, response);
     }
 
+    mtx_.unlock();
     return RequestHandler::OK;
 }
 
@@ -104,6 +122,7 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
     end = raw_response.find(" ", start);
     int raw_response_code = std::stoi(raw_response.substr(start, end - start));
     auto rc = (Response::ResponseCode) raw_response_code;
+    std::cerr << "got rc: " << rc << std::endl;
     response.SetStatus(rc);
 
     // get all headers
@@ -132,22 +151,22 @@ Response ProxyHandler::ParseRawResponse(const std::string& raw_response)
         if ((rc == Response::code_302_found ||
                     rc == Response::code_301_moved) &&
                 header_name == "Location") {
+            redirect_ = true;
             if (header_value[0] == '/') { // new URI on same host
                 redirect_uri_ = header_value;
             } else { // new host
                 // extract new host, uri
                 size_t uri_pos = 0;
-                remote_host_ = header_value;
-                if (remote_host_.find("http://") == 0) {
-                    remote_host_ = remote_host_.substr(strlen("http://"));
+                redirect_host_ = header_value;
+                if (redirect_host_.find("http://") == 0) {
+                    redirect_host_ = redirect_host_.substr(strlen("http://"));
                     uri_pos += strlen("http://");
                 }
-                if (remote_host_[remote_host_.size()-1] == '/') {
-                    remote_host_.resize(remote_host_.size()-1);
-                }
                 uri_pos = header_value.find("/", uri_pos);
-                redirect_host_ = header_value.substr(0, uri_pos);
+                redirect_host_header_ = header_value.substr(0, uri_pos);
                 redirect_uri_ = header_value.substr(uri_pos);
+                redirect_host_ = redirect_host_.substr(
+                        0, redirect_host_.find(redirect_uri_));
             }
         }
 

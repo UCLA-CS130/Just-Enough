@@ -21,6 +21,8 @@ SyncClient::BoostGuts::BoostGuts(
 
 bool SyncClient::Connect(const std::string& server, const std::string& port)
 {
+    std::cerr << "Connecting to " << server << ":" << port << std::endl;
+
     tcp::resolver::query query(server, port);
     tcp::resolver::iterator endpoint_iterator =
         boost_guts_->resolver_->resolve(query);

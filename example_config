@@ -26,4 +26,9 @@ path /proxy3 ProxyHandler {
   remote_port 80;
 }
 
+path / ProxyHandler {
+  remote_host ucla.edu;
+  remote_port 80;
+}
+
 default NotFoundHandler {}

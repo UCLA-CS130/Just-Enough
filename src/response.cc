@@ -28,6 +28,7 @@ const static std::map<Response::ResponseCode, std::string> responseCodeStrings =
 
     {Response::code_301_moved, "301 Moved Permanently"},
     {Response::code_302_found, "302 Found"},
+    {Response::code_304_not_modified, "304 Not Modified"},
 
     {Response::code_400_bad_request, "400 Bad Request"},
     {Response::code_401_unauthorized, "401 Unauthorized"},
