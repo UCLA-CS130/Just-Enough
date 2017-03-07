@@ -379,9 +379,57 @@ class Test:
                 if code != 200:
                     return "expected 200 OK, but got: " + str(code) + ": " + content
 
+    def test_basic_proxy():
+        """ test that ProxyHandler works as expected with a basic
+        (non-redirecting) webpage """
+        config = {
+                'filename': 'temp_config',
+                'port': 8080, # note: larger than max port of 65535
+                'handlers': [
+                    ('/echo', 'EchoHandler', []),
+                    ('/static', 'StaticHandler', ['root testFiles1']),
+                    ('/proxy', 'ProxyHandler',
+                        ['remote_host ipecho.net',
+                        'remote_port 80']),
+                    ]
+                }
 
+        with TemporaryConfigFile(config) as filepath:
+            with WebserverRunningContext(filepath):
+                code, content = makeWebserverRequest(config, '/proxy/plain')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+
+                content = content.decode('utf-8')
+                if len(content) < 7 or len(content) > 15:
+                    return "expected IP address, but got: " + str(content)
                 return Test.PASS
 
+    def test_redirecting_proxy():
+        """ test that ProxyHandler works as expected with a redirecting webpage """
+        config = {
+                'filename': 'temp_config',
+                'port': 8080, # note: larger than max port of 65535
+                'handlers': [
+                    ('/echo', 'EchoHandler', []),
+                    ('/static', 'StaticHandler', ['root testFiles1']),
+                    ('/proxy', 'ProxyHandler',
+                        ['remote_host google.com',
+                        'remote_port 80']),
+                    ]
+                }
+
+        with TemporaryConfigFile(config) as filepath:
+            with WebserverRunningContext(filepath):
+                code, content = makeWebserverRequest(config, '/proxy')
+                if not code: return "request failed"
+                if code != 200:
+                    return "expected 200 OK, but got: " + str(code) + ": " + content
+
+                if len(content) == 0:
+                    return "got empty response"
+                return Test.PASS
 
 def runTests():
     # get all methods of Test container
