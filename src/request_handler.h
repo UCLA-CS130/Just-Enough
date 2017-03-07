@@ -16,6 +16,35 @@ class Request {
     public:
         static std::unique_ptr<Request> Parse(const std::string& raw_request);
 
+        /*
+         * Mutators
+         */
+
+        void set_uri(const std::string &uri)
+        {
+          uri_ = uri;
+        }
+
+        void add_header(const std::string &lhs, const std::string &rhs)
+        {
+          headers_.push_back(std::pair<std::string,std::string>(lhs, rhs));
+        }
+
+        void remove_header(const std::string &lhs)
+        {
+          Headers::iterator it;
+          for (it = headers_.begin() ; it != headers_.end(); ++it) {
+            if ((*it).first == lhs) {
+              headers_.erase(it);
+              return;
+            }
+          }
+        }
+
+        /*
+         * Accessors
+         */
+
         std::string raw_request() const;
         std::string method() const;
         std::string uri() const;
@@ -31,7 +60,6 @@ class Request {
         std::string version_;
         std::string method_;
         Headers headers_;
-        std::string raw_request_;
         std::string body_;
 };
 
@@ -50,6 +78,10 @@ class Response {
         enum ResponseCode {
             code_200_OK = 200,
 
+            code_301_moved = 301,
+            code_302_found = 302, // aka redirect
+            code_304_not_modified = 304,
+
             code_400_bad_request = 400,
             code_401_unauthorized = 401,
             code_403_forbidden = 403,
@@ -58,17 +90,33 @@ class Response {
             code_500_internal_error = 500,
         };
 
+        using Headers = std::vector<std::pair<std::string, std::string>>;
+
+        /*
+         * Mutators
+         */
         void SetStatus(const ResponseCode response_code);
-        ResponseCode status() const;
         void AddHeader(const std::string& header_name, const std::string& header_value);
         void SetBody(const std::string& body);
+
+        /*
+         * Accessors
+         */
+        ResponseCode status() const;
+        Headers headers() const
+        {
+          return Headers(headers_);
+        }
+        std::string body() const
+        {
+          return body_;
+        }
 
         std::string ToString();
 
     private:
         ResponseCode code_;
         std::string body_;
-        using Headers = std::vector<std::pair<std::string, std::string>>;
         Headers headers_;
 };
 

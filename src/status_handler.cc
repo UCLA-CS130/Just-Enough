@@ -2,11 +2,11 @@
 #include "webserver.h"
 #include <iostream>
 
-RequestHandler::Status StatusHandler::Init(const std::string& uri_prefix, const NginxConfig& config) {
+RequestHandler::Status StatusHandler::Init(const std::string&, const NginxConfig&) {
     return RequestHandler::OK;
 }
 
-RequestHandler::Status StatusHandler::HandleRequest(const Request& req, Response* resp) {
+RequestHandler::Status StatusHandler::HandleRequest(const Request&, Response* resp) {
     Webserver* ws = Webserver::instance;
     if ( ! ws) {
         std::cerr << "StatusHandler failed: No global webserver instance." << std::endl;

@@ -5,7 +5,7 @@
 using std::string;
 
 
-RequestHandler::Status DelayHandler::Init(const std::string& uri_prefix, const NginxConfig& config) {
+RequestHandler::Status DelayHandler::Init(const std::string&, const NginxConfig& config) {
   delay_ = DEFAULT_DELAY;
   for(size_t i = 0; i < config.statements_.size(); i++) {
     if (config.statements_[i]->tokens_.size() == 2){
@@ -21,7 +21,7 @@ RequestHandler::Status DelayHandler::Init(const std::string& uri_prefix, const N
     return RequestHandler::OK;
 }
 
-RequestHandler::Status DelayHandler::HandleRequest(const Request& req, Response* resp) {
+RequestHandler::Status DelayHandler::HandleRequest(const Request&, Response* resp) {
     resp->SetStatus(Response::code_200_OK);
     resp->SetBody("Delay Test");
     resp->AddHeader("Content-Type", "text/plain");
