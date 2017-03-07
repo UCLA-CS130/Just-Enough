@@ -80,6 +80,7 @@ class Response {
 
             code_301_moved = 301,
             code_302_found = 302, // aka redirect
+            code_304_not_modified = 304,
 
             code_400_bad_request = 400,
             code_401_unauthorized = 401,

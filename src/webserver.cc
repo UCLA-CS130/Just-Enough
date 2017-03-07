@@ -46,6 +46,7 @@ inline std::string Webserver::readStrUntil(
         const char* termChar,
         boost::system::error_code& err)
 {
+    std::unique_lock<std::mutex> lck(mtx_);
     size_t bytes_read = read_until(socket, buf, termChar, err);
     std::istream input(&buf);
     std::string line(bytes_read, ' ');
