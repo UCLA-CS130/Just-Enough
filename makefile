@@ -29,6 +29,8 @@ GTEST_DIR = googletest/googletest
 GMOCK_DIR = googletest/googlemock
 TEST_FLAGS = $(DEBUG_FLAGS) -isystem $(GTEST_DIR)/include -isystem $(GMOCK_DIR)/include -pthread
 
+HAS_DOCKER := $(shell command -v docker 2> /dev/null)
+
 all: $(OBJ_FILES)
 	@echo "$(C)Linking $(CLR)"
 	@$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(MAIN) $^ -o webserver $(LDFLAGS)
@@ -71,11 +73,11 @@ coverage: clean
 
 test-all: test integration
 
-deploy:
+deploy: clean
 	@docker build -t webserver.build .
 	@docker run webserver.build > binary.tar
-	@mkdir deployment
-	@cd deployment && mkdir src
+	@mkdir -p deployment
+	@cd deployment && mkdir -p src
 	@cd ..
 	@cp -R src deployment/src
 	@cp example_config deployment
@@ -95,3 +97,9 @@ clean:
 	@-rm -f run_tests
 	@-rm -rf deployment
 	@-rm -f *.tar
+ifdef HAS_DOCKER
+	@docker ps -aq --filter "ancestor=webserver.build" | xargs docker rm
+	@docker images -q --filter "since=ubuntu:14.04" | xargs -L1 docker rmi
+endif
+
+
