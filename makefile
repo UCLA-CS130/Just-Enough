@@ -74,6 +74,7 @@ test-all: test integration
 deploy:
 	@docker build -t webserver.build .
 	@docker run webserver.build > binary.tar
+	@mkdir deployment
 	@mkdir deployment/src
 	@cp -R src deployment/src
 	@cp example_config deployment
