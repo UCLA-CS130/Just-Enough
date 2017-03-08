@@ -76,6 +76,7 @@ deploy:
 	@docker run webserver.build > binary.tar
 	@cp -R src deployment
 	@cp example_config deployment
+	@cp Dockerfile_shrink deployment/Dockerfile
 	@tar -xf binary.tar -C deployment/
 
 clean:
@@ -88,5 +89,5 @@ clean:
 	@-rm -rf build
 	@-rm -f webserver
 	@-rm -f run_tests
-
-
+	@-rm -rf deployment
+	@-rm -f *.tar
