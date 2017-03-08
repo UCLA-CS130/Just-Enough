@@ -5,10 +5,10 @@ CFLAGS += $(EXTRA_FLAGS)
 
 LDFLAGS =
 ifeq ($(UNAME), Linux)
-	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -lboost_system -lboost_filesystem -lpthread
+	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -static-libgcc -static-libstdc++ -lpthread -Wl,-Bstatic -lboost_system -lboost_filesystem
 endif
 ifeq ($(UNAME), Darwin) # macOS
-	LDFLAGS += -L/usr/local/include -lboost_system -lboost_filesystem
+	LDFLAGS += -L/usr/local/include -lboost_system -lboost_filesystem 
 endif
 
 DEBUG_FLAGS = -g -Wall -Wextra -Werror
@@ -70,6 +70,13 @@ coverage: clean
 	@exec make -s clean
 
 test-all: test integration
+
+deploy:
+	@docker build -t webserver.build .
+	@docker run webserver.build > binary.tar
+	@cp -R src deployment
+	@cp example_config deployment
+	@tar -xf binary.tar -C deployment/
 
 clean:
 	@-rm -f *.o
