@@ -156,10 +156,10 @@ def makeWebserverRequest(config, path, headers={}):
 class Test:
     """ tests will be automatically collected from this container class """
     PASS = None
-    SKIP = "SKIP"
+    SKIP = "SKIP" # special value for tests to return when the test should be skipped
 
     def test_basic():
-        """ test that server can run and recieve requests,
+        """ test that server can run and receive requests,
             and for now, that the request is correctly echo'd back
         """
         config = {
@@ -446,7 +446,8 @@ class Test:
     def test_multithreaded():
         """ tests if multithreading works correctly
         """
-        delaytime = 200000
+        sec_to_ms = 1000000
+        delaytime = 0.2 * sec_to_ms
         config = {
                 'filename': 'temp_config',
                 'port': 8080,
@@ -473,9 +474,9 @@ class Test:
                 for thread in threads:
                     thread.join()
                 time2 = time.time()
-                timesec = delaytime/1000000
+                timems = delaytime/sec_to_ms
                 print(time2-time1)
-                if(time2-time1> 2*timesec):
+                if(time2-time1> 2*timems):
                     return "multithreading didnt work"
 
                 return Test.PASS
@@ -485,7 +486,8 @@ class Test:
     def test_multithreaded2():
         """ tests if multithreading works correctly
         """
-        delaytime = 2000000
+        sec_to_ms = 1000000
+        delaytime = 1.0 * sec_to_ms
         config = {
                 'filename': 'temp_config',
                 'port': 8080,
@@ -513,9 +515,9 @@ class Test:
                 for thread in threads:
                     thread.join()
                 time2 = time.time()
-                timesec = delaytime/1000000
+                timems = delaytime/sec_to_ms
                 print(time2-time1)
-                if(time2-time1> 1.5*timesec):
+                if(time2-time1> 1.5*timems):
                     return "multithreading didnt work"
 
                 return Test.PASS
