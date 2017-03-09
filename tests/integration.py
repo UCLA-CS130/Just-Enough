@@ -156,6 +156,7 @@ def makeWebserverRequest(config, path, headers={}):
 class Test:
     """ tests will be automatically collected from this container class """
     PASS = None
+    SKIP = "SKIP"
 
     def test_basic():
         """ test that server can run and recieve requests,
@@ -387,6 +388,12 @@ class Test:
     def test_basic_proxy():
         """ test that ProxyHandler works as expected with a basic
         (non-redirecting) webpage """
+
+        print("Warning: skipping flakey proxy test connecting to remote host")
+        return Test.SKIP
+
+        remote_host = 'ipecho.net'
+
         config = {
                 'filename': 'temp_config',
                 'port': 8080, # note: larger than max port of 65535
@@ -394,7 +401,7 @@ class Test:
                     ('/echo', 'EchoHandler', []),
                     ('/static', 'StaticHandler', ['root testFiles1']),
                     ('/proxy', 'ProxyHandler',
-                        ['remote_host ipecho.net',
+                        ['remote_host %s' % remote_host,
                         'remote_port 80']),
                     ]
                 }
@@ -530,7 +537,9 @@ def runTests():
             error = test()
         except Exception as e:
             error = str(e)
-        if error:
+        if error == Test.SKIP:
+            pass
+        elif error:
             print('%s[   FAILED ]%s %s' % (RED_ESCAPE, CLR_ESCAPE, testName))
             for testInfoLine in testInfo.split('\n'):
                 print("%s >>> %s%s" % (RED_ESCAPE, CLR_ESCAPE, testInfoLine.strip()))
