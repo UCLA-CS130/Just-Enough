@@ -15,6 +15,8 @@ class SyncClientTest : public ::testing::Test {
     }
 };
 
+// The following depends on external hosts and so is tested more thoroughly in integration tests
+/*
 TEST_F(SyncClientTest, IntegratedSanity)
 {
   SyncClient client;
@@ -34,3 +36,4 @@ TEST_F(SyncClientTest, IntegratedSanity)
   ASSERT_TRUE(client.Read(response));
   ASSERT_TRUE(response.size() > 0);
 }
+*/

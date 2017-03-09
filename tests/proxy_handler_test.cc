@@ -69,6 +69,12 @@ TEST_F(ProxyHandlerTest, ResponseParsingTest)
   ASSERT_STREQ(r.body().c_str(), "hello, world!");
 }
 
+/*
+ * The following tests require dependency on external hosts ucla.edu, ipecho.ent, google.com
+ * Since not all testing environments (e.g. travis) will have access to such hosts
+ * these tests are currently disabled, and are covered more thoroughly in integration tests
+ */
+/*
 TEST_F(ProxyHandlerTest, SanityTest)
 {
   Response r;
@@ -111,3 +117,4 @@ TEST_F(ProxyHandlerTest, NotFoundTest)
   ASSERT_EQ(status_, RequestHandler::OK);
   ASSERT_EQ(r.status(), Response::code_404_not_found);
 }
+*/

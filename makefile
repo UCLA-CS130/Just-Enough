@@ -5,7 +5,7 @@ CFLAGS += $(EXTRA_FLAGS)
 
 LDFLAGS =
 ifeq ($(UNAME), Linux)
-	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -lboost_system -lboost_filesystem -lpthread
+	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -static-libgcc -static-libstdc++ -lpthread -Wl,-Bstatic -lboost_system -lboost_filesystem
 endif
 ifeq ($(UNAME), Darwin) # macOS
 	LDFLAGS += -L/usr/local/include -lboost_system -lboost_filesystem
@@ -28,6 +28,8 @@ TEST_OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(TEST_FILES:.cc=.o)))
 GTEST_DIR = googletest/googletest
 GMOCK_DIR = googletest/googlemock
 TEST_FLAGS = $(DEBUG_FLAGS) -isystem $(GTEST_DIR)/include -isystem $(GMOCK_DIR)/include -pthread
+
+HAS_DOCKER := $(shell command -v docker 2> /dev/null)
 
 all: $(OBJ_FILES)
 	@echo "$(C)Linking $(CLR)"
@@ -71,6 +73,19 @@ coverage: clean
 
 test-all: test integration
 
+deploy: clean
+	@docker build -t webserver.build .
+	@docker run webserver.build > binary.tar
+	@mkdir -p deployment
+	@cd deployment && mkdir -p src
+	@cd ..
+	@cp -R src deployment/src
+	@cp example_config deployment
+	@cp Dockerfile_shrink deployment/Dockerfile
+	@tar -xf binary.tar -C deployment/
+	@docker build -t webserver deployment
+	@# Note: run shrunk docker container with: docker run --rm -t -p 8080:8080 webserver
+
 clean:
 	@-rm -f *.o
 	@-rm -f *.a
@@ -81,5 +96,12 @@ clean:
 	@-rm -rf build
 	@-rm -f webserver
 	@-rm -f run_tests
+	@-rm -rf deployment
+	@-rm -f *.tar
+ifdef HAS_DOCKER
+	@docker ps -q --filter "ancestor=webserver" | xargs docker kill # kill running instances
+	@docker ps -aq --filter "ancestor=webserver.build" | xargs docker rm # remove container
+	@docker images -q --filter "since=ubuntu:14.04" | xargs -L1 docker rmi # remove images
+endif
 
 
