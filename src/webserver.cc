@@ -30,6 +30,9 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
     auto req = Request::Parse(reqStr);
     Response resp;
 
+
+    std::cout << "request to '" << req->uri() << "'\n";
+
     RequestHandler* handler = matchRequestWithHandler(*req);
 
     handler->HandleRequest(*req, &resp);
@@ -121,7 +124,7 @@ void Webserver::runThread(int threadIndex) {
             processConnection(threadIndex, socket);
 
             // rate limit inbound connections
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            //std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     } catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
