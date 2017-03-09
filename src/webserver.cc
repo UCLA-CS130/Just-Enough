@@ -15,11 +15,9 @@ RequestHandler* Webserver::matchRequestWithHandler(const Request& req) {
     for (int prefixSize = prefix.size(); prefixSize > 0; prefixSize--) {
         prefix.resize(prefixSize);
 
-        std::cout << "checking prefix '" << prefix << "'" << std::endl;
         auto match = opt_->handlerMap.find(prefix);
         if (match != opt_->handlerMap.end()) {
             RequestHandler* handler = match->second;
-            std::cout << " > matched '" << handler << "'" << std::endl;
 
             return handler;
         }

@@ -84,6 +84,7 @@ deploy: clean
 	@cp Dockerfile_shrink deployment/Dockerfile
 	@tar -xf binary.tar -C deployment/
 	@docker build -t webserver deployment
+	@# Note: run shrunk docker container with: docker run --rm -t -p 8080:8080 webserver
 
 clean:
 	@-rm -f *.o
@@ -98,8 +99,9 @@ clean:
 	@-rm -rf deployment
 	@-rm -f *.tar
 ifdef HAS_DOCKER
-	@docker ps -aq --filter "ancestor=webserver.build" | xargs docker rm
-	@docker images -q --filter "since=ubuntu:14.04" | xargs -L1 docker rmi
+	@docker ps -q --filter "ancestor=webserver" | xargs docker kill # kill running instances
+	@docker ps -aq --filter "ancestor=webserver.build" | xargs docker rm # remove container
+	@docker images -q --filter "since=ubuntu:14.04" | xargs -L1 docker rmi # remove images
 endif
 
 

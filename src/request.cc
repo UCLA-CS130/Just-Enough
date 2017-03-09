@@ -18,7 +18,7 @@ std::unique_ptr<Request> Request::Parse(const string& raw_request) {
     string head = getCRLFLine(reqSS);
     vector<string> headTokens = split(head, ' ');
     if (headTokens.size() != 3) { // VERB PATH HTTP/VERSION
-        std::cerr << "received malformed request" << std::endl;
+        std::cerr << "received malformed request: " << head << std::endl;
         return nullptr;
     }
     req->method_ = headTokens[0];
@@ -28,7 +28,7 @@ std::unique_ptr<Request> Request::Parse(const string& raw_request) {
 
     // HTTP/1.1
     if (headTokens[2].substr(0, 5) != "HTTP/") {
-        std::cerr << "received malformed request" << std::endl;
+        std::cerr << "received malformed request: " << head << std::endl;
         return nullptr;
     }
     req->version_ = headTokens[2];
@@ -40,7 +40,7 @@ std::unique_ptr<Request> Request::Parse(const string& raw_request) {
 
         size_t delimPos = line.find(':');
         if (delimPos == string::npos) {
-            std::cerr << "received malformed request" << std::endl;
+            std::cerr << "received malformed request header: " << line << std::endl;
             return nullptr;
         }
 
