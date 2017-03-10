@@ -73,7 +73,9 @@ coverage: clean
 
 test-all: test integration
 
-deploy: clean
+deploy:
+	@docker ps -q | xargs -L1 docker kill || true # kill running instances
+	@docker ps -aq  | xargs docker rm || true # remove container
 	@docker build -t webserver.build .
 	@docker run webserver.build > binary.tar
 	@mkdir -p deployment
@@ -84,7 +86,22 @@ deploy: clean
 	@cp Dockerfile_shrink deployment/Dockerfile
 	@tar -xf binary.tar -C deployment/
 	@docker build -t webserver deployment
+	@docker ps -aq --filter "ancestor=webserver.build" | xargs docker rm # remove un-shrunk container
+	@docker images -q webserver.build | xargs docker rmi # remove un-shrunk image
 	@# Note: run shrunk docker container with: docker run --rm -t -p 8080:8080 webserver
+
+EC2_PUBLIC_IP = 54.202.52.105
+EC2_PEM = ../my-ec2-key-pair.pem
+EC2_USER = ec2-user
+EC2_WEBSERVER_DIR = /home/ec2-user
+deploy-upload-to-server: deploy
+	docker images -q webserver |  xargs -I {} docker save {} > justenough.tar
+	scp -i $(EC2_PEM) justenough.tar $(EC2_USER)@$(EC2_PUBLIC_IP):$(EC2_WEBSERVER_DIR)/justenough.tar
+	ssh -i $(EC2_PEM) $(EC2_USER)@$(EC2_PUBLIC_IP) "docker ps -aq | xargs -L1 docker kill" || true
+	ssh -i $(EC2_PEM) $(EC2_USER)@$(EC2_PUBLIC_IP) "docker ps -aq | xargs -L1 docker rm" || true
+	ssh -i $(EC2_PEM) $(EC2_USER)@$(EC2_PUBLIC_IP) "docker images -q | xargs -L1 docker rmi" || true
+	ssh -i $(EC2_PEM) $(EC2_USER)@$(EC2_PUBLIC_IP) "docker load < $(EC2_WEBSERVER_DIR)/justenough.tar"
+	ssh -i $(EC2_PEM) $(EC2_USER)@$(EC2_PUBLIC_IP) "docker images -q | xargs -I {} docker run -d -t -p 80:8080 {} > /home/ec2-user/log/webserverlog"
 
 clean:
 	@-rm -f *.o

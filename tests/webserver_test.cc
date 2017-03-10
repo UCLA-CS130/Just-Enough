@@ -10,6 +10,8 @@ using ::testing::_;
 using ::testing::Return;
 using ::testing::StrEq;
 using ::testing::MatchesRegex;
+using ::testing::DoAll;
+using ::testing::InvokeWithoutArgs;
 using boost::asio::ip::tcp;
 
 class MockWebserverRun : public Webserver {
@@ -98,10 +100,12 @@ TEST(WebserverTest, acceptConnections) {
     MockWebserverRunThread webserver(&opts);
 
     EXPECT_CALL(webserver, acceptConnection(_))
-        .Times(3)
+        .Times(2)
         .WillOnce(Return(true))
-        .WillOnce(Return(true))
-        .WillOnce(Return(false));
+        .WillOnce(DoAll(
+                    InvokeWithoutArgs(&webserver, &Webserver::stop),
+                    Return(true)
+                    ));
 
     EXPECT_CALL(webserver, processConnection(_, _))
         .Times(2); // for two accepted connections
@@ -125,7 +129,8 @@ TEST(WebserverTest, processConnectionTest) {
         .WillOnce(Return(s))
         .WillOnce(Return(std::string("\r\n")));
 
-    EXPECT_CALL(webserver, processRawRequest(_)).Times(1);
+    EXPECT_CALL(webserver, processRawRequest(_))
+        .WillOnce(Return("HTTP/1.1 200 OK\r\n\r\n"));
 
     EXPECT_CALL(webserver, writeResponseString(_, _)).Times(1);
 

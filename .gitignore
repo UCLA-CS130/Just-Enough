@@ -14,3 +14,4 @@ deployment
 *.tar
 *.swp
 *.swo
+*.pem

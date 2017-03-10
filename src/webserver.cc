@@ -1,4 +1,3 @@
-#include <chrono>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -28,7 +27,12 @@ RequestHandler* Webserver::matchRequestWithHandler(const Request& req) {
 
 std::string Webserver::processRawRequest(std::string& reqStr) {
     auto req = Request::Parse(reqStr);
+    if (req == nullptr) {
+        return "";
+    }
     Response resp;
+
+    std::cout << "request to '" << req->uri() << "'\n";
 
     RequestHandler* handler = matchRequestWithHandler(*req);
 
@@ -45,7 +49,6 @@ inline std::string Webserver::readStrUntil(
         const char* termChar,
         boost::system::error_code& err)
 {
-    std::unique_lock<std::mutex> lck(mtx_);
     size_t bytes_read = read_until(socket, buf, termChar, err);
     std::istream input(&buf);
     std::string line(bytes_read, ' ');
@@ -55,7 +58,6 @@ inline std::string Webserver::readStrUntil(
 }
 
 inline void Webserver::logConnectionDetails(int threadIndex, tcp::socket& socket) {
-    std::unique_lock<std::mutex> lck(mtx_);
     std::cout << "Thread " << threadIndex << " accepted connection from "
         << socket.remote_endpoint().address().to_string()
         << ":" << socket.remote_endpoint().port()
@@ -82,12 +84,17 @@ void Webserver::processConnection(int threadIndex, tcp::socket& socket) {
         }
     }
     std::string response = processRawRequest(req);
+    if (response == "") {
+        std::cout << "Error processing request\n";
+        return;
+    }
 
     writeResponseString(socket, response);
 }
 
 bool Webserver::acceptConnection(tcp::socket& socket) {
     try {
+        std::unique_lock<std::mutex> lck(mtx_); // note: don't use this mutex outside of here
         acceptor_->accept(socket);
     } catch (boost::system::system_error& err) {
         std::cerr << err.what() << std::endl;
@@ -110,22 +117,24 @@ void Webserver::run() {
 }
 
 void Webserver::runThread(int threadIndex) {
+    running_ = true;
     try {
-        while (true) {
+        while (running_) {
             tcp::socket socket(io_service_);
 
             if ( !  acceptConnection(socket)) {
-                return; // TODO: is this really what you want? one failed connection will crash your server.
+                continue;
             }
 
             processConnection(threadIndex, socket);
-
-            // rate limit inbound connections
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     } catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
+}
+
+void Webserver::stop() {
+    running_ = false;
 }
 
 Webserver* Webserver::instance = nullptr;
