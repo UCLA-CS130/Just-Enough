@@ -19,6 +19,7 @@ class Webserver {
 
         virtual void run();
         virtual void runThread(int threadIndex);
+        virtual void stop();
 
         /*
          * Read bytes from socket into a string until termChar is found.
@@ -61,6 +62,8 @@ class Webserver {
         Options* opt_;
         boost::asio::io_service io_service_;
         std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
+
+        bool running_;
 
         std::mutex mtx_; // guards output, TODO(evan): use thread-safe logging instead
 

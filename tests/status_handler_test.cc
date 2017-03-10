@@ -62,11 +62,12 @@ TEST_F(StatusHandlerTestF, handleRequest) {
             {"/status", s1},
             });
 
-
     auto req = Request::Parse(
             "GET /status HTTP/1.1\r\n"
             "\r\n"
             );
+
+    ASSERT_NE(req, nullptr);
 
     Response resp;
     ASSERT_EQ(s1->HandleRequest(*req, &resp), RequestHandler::OK);

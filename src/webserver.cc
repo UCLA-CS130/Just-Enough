@@ -117,12 +117,13 @@ void Webserver::run() {
 }
 
 void Webserver::runThread(int threadIndex) {
+    running_ = true;
     try {
-        while (true) {
+        while (running_) {
             tcp::socket socket(io_service_);
 
             if ( !  acceptConnection(socket)) {
-                return; // TODO: is this really what you want? one failed connection will crash your server.
+                continue;
             }
 
             processConnection(threadIndex, socket);
@@ -130,6 +131,10 @@ void Webserver::runThread(int threadIndex) {
     } catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
+}
+
+void Webserver::stop() {
+    running_ = false;
 }
 
 Webserver* Webserver::instance = nullptr;
