@@ -125,7 +125,8 @@ TEST(WebserverTest, processConnectionTest) {
         .WillOnce(Return(s))
         .WillOnce(Return(std::string("\r\n")));
 
-    EXPECT_CALL(webserver, processRawRequest(_)).Times(1);
+    EXPECT_CALL(webserver, processRawRequest(_))
+        .WillOnce(Return("HTTP/1.1 200 OK\r\n\r\n"));
 
     EXPECT_CALL(webserver, writeResponseString(_, _)).Times(1);
 
