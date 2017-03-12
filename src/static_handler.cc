@@ -1,5 +1,6 @@
 #include "static_handler.h"
 #include "fileLoader.h"
+#include "markdown.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
 
@@ -72,6 +73,19 @@ RequestHandler::Status StaticHandler::HandleRequest(const Request& req, Response
             string contentType = MIMETypeMap.at(mt);
 
             resp->SetStatus(Response::code_200_OK);
+
+            if (mt ==  MIMEType_md) {
+                string converted_md = convertMarkdownToHtml(&data);
+                if (converted_md == "") {
+                    // something went wrong in converting the markdown
+                    resp->SetStatus(Response::code_500_internal_error);
+                    return RequestHandler::OK;
+                }
+                resp->AddHeader("Content-Type", MIMETypeMap.at(MIMEType_html));
+                resp->SetBody(converted_md);
+                return RequestHandler::OK;
+            }
+
             resp->AddHeader("Content-Type", contentType);
             resp->SetBody(data);
             return RequestHandler::OK;
@@ -80,6 +94,7 @@ RequestHandler::Status StaticHandler::HandleRequest(const Request& req, Response
     resp->SetStatus(Response::code_500_internal_error);
     return RequestHandler::Error;
 }
+
 
 StaticHandler::~StaticHandler() {
     if (notFoundHandler_) {
