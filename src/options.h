@@ -19,6 +19,7 @@ struct Options {
     bool addThread(std::shared_ptr<NginxConfigStatement> thread_config);
     bool loadOptionsFromStream(std::istream* config_file);
     bool loadOptionsFromFile(const char* filename);
+    Options();
     ~Options();
 };
 

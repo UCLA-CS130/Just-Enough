@@ -195,6 +195,12 @@ bool Options::loadOptionsFromFile(const char* filename) {
     return val;
 }
 
+Options::Options() {
+    port = 0;
+    thread = DEFAULT_NUM_THREADS;
+    auth = nullptr;
+    defaultHandler = nullptr;
+}
 Options::~Options() {
     // free allocated handlers
     for (auto& h: handlerMap) {
