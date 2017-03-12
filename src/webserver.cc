@@ -12,16 +12,9 @@ using boost::asio::ip::tcp;
 
 RequestHandler* Webserver::matchRequestWithHandler(const Request& req) {
     // TODO(evan): stop using brute force prefix matching
-    std::string prefix = req.uri();
-    for (int prefixSize = prefix.size(); prefixSize > 0; prefixSize--) {
-        prefix.resize(prefixSize);
-
-        auto match = opt_->handlerMap.find(prefix);
-        if (match != opt_->handlerMap.end()) {
-            RequestHandler* handler = match->second;
-
-            return handler;
-        }
+    auto h = mapHasPrefix(opt_->handlerMap, req.uri());
+    if (h) {
+        return *h;
     }
     std::cout << "using default handler for " << req.uri() << "\n";
     return opt_->defaultHandler;
@@ -39,8 +32,10 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
     if (opt_->auth && opt_->auth->requestRequiresAuthentication(*req)) {
         if ( ! opt_->auth->requestPassesAuthentication(*req)) {
             opt_->auth->generateFailedAuthenticationResponse(*req, &resp);
+            std::cout << "challenging authentication\n";
             return resp.ToString();
         }
+        std::cout << "authenticated successfully\n";
     }
 
     RequestHandler* handler = matchRequestWithHandler(*req);
