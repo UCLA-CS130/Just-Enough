@@ -51,13 +51,13 @@ void Authentication::generateFailedAuthenticationResponse(const Request& req, Re
     resp->AddHeader("Content-Type", "text/html");
     auto found = realms_.find(req.uri());
     if (found != realms_.end() && found->second) {
-        resp->AddHeader("WWW-Authenticate", "Basic realm=\"" + req.uri() + "\"");
+        resp->AddHeader("WWW-Authenticate", "Basic realm=\"" + found->second->realm() + "\"");
     }
     resp->SetBody("<html><body><h1>401 Unauthorized</h1><p>Invalid credentials</p></body></html>");
 }
 
-void Authentication::addRealm(std::string uri, AuthenticationRealm* r) {
-    realms_[uri] = std::unique_ptr<AuthenticationRealm>(r);
+void Authentication::addRealm(AuthenticationRealm* r) {
+    realms_[r->realm()] = std::unique_ptr<AuthenticationRealm>(r);
 }
 
 

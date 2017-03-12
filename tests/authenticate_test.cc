@@ -12,7 +12,7 @@ class AuthenticationTest : public ::testing::Test {
         // given an array of path prefix to RequestHandler*, initialize a webserver instance
         virtual void createAuthentication() {
             auth_ = std::unique_ptr<Authentication>(new Authentication());
-            auth_->addRealm("/secret", new AuthenticationRealm({{"user1", "pass1"}, {"user2", "password2"}}));
+            auth_->addRealm(new AuthenticationRealm("/secret", {{"user1", "pass1"}, {"user2", "password2"}}));
         }
 
         std::unique_ptr<Authentication> auth_;

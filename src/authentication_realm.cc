@@ -1,7 +1,7 @@
 #include "authentication_realm.h"
 
-AuthenticationRealm::AuthenticationRealm(std::map<std::string, std::string> users)
-    : users_(users)
+AuthenticationRealm::AuthenticationRealm(std::string realm, std::map<std::string, std::string> users)
+    : users_(users), realm_(realm)
 {}
 
 bool AuthenticationRealm::authenticate(std::string username, std::string password) {
@@ -10,4 +10,8 @@ bool AuthenticationRealm::authenticate(std::string username, std::string passwor
         return (found->second == password);
     }
     return false;
+}
+
+std::string AuthenticationRealm::realm() {
+    return realm_;
 }
