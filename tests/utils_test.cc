@@ -64,3 +64,43 @@ TEST(UtilsTest, getCRLFLine_noCR) {
     EXPECT_EQ(getCRLFLine(ss), "");
     EXPECT_EQ(getCRLFLine(ss), "");
 }
+
+TEST(UtilsTest, mapHasPrefix_contained) {
+    std::map<std::string, std::string> m = {
+        {"foo", "key1"},
+        {"foo/bar", "key2"},
+        {"foo/bar/baz", "key3"},
+        {"blam", "key4"},
+    };
+
+    EXPECT_EQ(mapHasPrefix(m, "nope"), nullptr);
+    EXPECT_EQ(mapHasPrefix(m, ""), nullptr);
+
+    EXPECT_EQ( *mapHasPrefix(m, "foo"), "key1");
+    EXPECT_EQ( *mapHasPrefix(m, "foo/bar"), "key2");
+    EXPECT_EQ( *mapHasPrefix(m, "foo/bar/baz"), "key3");
+}
+
+TEST(UtilsTest, mapHasPrefix_prefix) {
+    std::map<std::string, std::string> m = {
+        {"foo", "key1"},
+        {"foo/bar", "key2"},
+        {"foo/bar/baz", "key3"},
+        {"blam", "key4"},
+    };
+
+    EXPECT_EQ(mapHasPrefix(m, "nope"), nullptr);
+    EXPECT_EQ(mapHasPrefix(m, ""), nullptr);
+
+    EXPECT_EQ( *mapHasPrefix(m, "foo/hello"), "key1");
+    EXPECT_EQ( *mapHasPrefix(m, "foo/bar/world"), "key2");
+    EXPECT_EQ( *mapHasPrefix(m, "foo/bar/baz/!"), "key3");
+}
+
+TEST(UtilsTest, mapHasPrefix_empty) {
+    std::map<std::string, std::string> m = {};
+
+    EXPECT_EQ(mapHasPrefix(m, "nope"), nullptr);
+    EXPECT_EQ(mapHasPrefix(m, ""), nullptr);
+}
+

@@ -30,6 +30,9 @@ inline std::string getCRLFLine(std::stringstream& ss) {
 template <typename T>
 T* mapHasPrefix(std::map<std::string, T>& m, const std::string& s) {
     std::string prefix = s;
+    if (m.size() == 0) {
+        return nullptr;
+    }
     for (int prefixSize = prefix.size(); prefixSize > 0; prefixSize--) {
         prefix.resize(prefixSize);
 
