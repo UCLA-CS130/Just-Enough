@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     }
 
     Authentication* auth = new Authentication();
-    auth->addRealm("/echo/secret", new AuthenticationRealm({{"evan", "pass"}, {"admin", "password"}}));
+    auth->addRealm(new AuthenticationRealm("/echo/secret", {{"evan", "pass"}, {"admin", "password"}}));
     opt.auth = auth;
 
     Webserver ws(&opt);

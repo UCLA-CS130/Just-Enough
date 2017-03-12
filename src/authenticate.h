@@ -10,7 +10,7 @@ class Authentication {
     bool requestPassesAuthentication(const Request& req);
     void generateFailedAuthenticationResponse(const Request& req, Response* resp);
 
-    void addRealm(std::string uri, AuthenticationRealm* r);
+    void addRealm(AuthenticationRealm* r);
 
     private:
     std::map<std::string, std::unique_ptr<AuthenticationRealm>> realms_;
