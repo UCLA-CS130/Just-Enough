@@ -5,7 +5,7 @@
 #include <memory>
 
 bool Authentication::requestRequiresAuthentication(const Request& req) {
-    return (realms_.find(req.uri()) != realms_.end());
+    return (mapHasPrefix(realms_, req.uri()) != nullptr);
 }
 
 bool Authentication::requestPassesAuthentication(const Request& req) {
@@ -39,9 +39,9 @@ bool Authentication::requestPassesAuthentication(const Request& req) {
         return false;
     }
 
-    auto found = realms_.find(req.uri());
-    if (found != realms_.end() && found->second) {
-        return found->second->authenticate(user, pass);
+    auto found = mapHasPrefix(realms_, req.uri());
+    if (found) {
+        return (*found)->authenticate(user, pass);
     }
     return false;
 }
