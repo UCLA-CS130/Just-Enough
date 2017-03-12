@@ -1,5 +1,5 @@
 language: cpp
-script: make test-all-clean
+script: make test-all
 addons:
   apt:
     packages:
