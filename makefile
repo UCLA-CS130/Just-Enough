@@ -103,6 +103,17 @@ deploy-upload-to-server: deploy
 	ssh -i $(EC2_PEM) $(EC2_USER)@$(EC2_PUBLIC_IP) "docker load < $(EC2_WEBSERVER_DIR)/justenough.tar"
 	ssh -i $(EC2_PEM) $(EC2_USER)@$(EC2_PUBLIC_IP) "docker images -q | xargs -I {} docker run -d -t -p 80:8080 {} > /home/ec2-user/log/webserverlog"
 
+dependencies:
+	git submodule update --init
+	@# Note: use "&&\\n" to run all these commands in one shell instance so `cd` works
+	@cd discount &&\
+		mkdir -p dist dist/etc dist/bin/ dist/sbin dist/lib &&\
+		pwd &&\
+		./configure.sh --prefix=dist --confdir=dist/etc &&\
+		make &&\
+		make install &&\
+		cd ..
+
 clean:
 	@-rm -f *.o
 	@-rm -f *.a
