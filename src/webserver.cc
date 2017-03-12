@@ -36,42 +36,11 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
 
     std::cout << "request to '" << req->uri() << "'\n";
 
-    auto headers = req->headers();
-    bool auth = false;
-    for (auto header : headers) {
-        if (header.first == "Authorization") {
-
-            std::string b64_part;
-            auto tokens = split(header.second, ' ');
-            if (tokens.size() != 2 || tokens[0] != "Basic") {
-                std::cout << "unrecognized auth format: " << (tokens.size() > 0 ? tokens[0] : "<none>") << std::endl;
-                resp.SetStatus(Response::code_401_unauthorized);
-                return resp.ToString();
-            }
-
-            std::string authUserPass = base64_decode(tokens[1]);
-            auto userpass = split(authUserPass, ':');
-            if (userpass.size() != 2) {
-                std::cout << "unrecognized auth format " << std::endl;
-                resp.SetStatus(Response::code_401_unauthorized);
-                return resp.ToString();
-            }
-            std::string user = userpass[0];
-            std::string pass = userpass[1];
-
-            if ( ! (user == "admin" && pass == "password")) {
-                resp.SetStatus(Response::code_401_unauthorized);
-                return resp.ToString();
-            }
-
-            std::cout << "authenticated." << std::endl;
-            auth = true;
+    if (opt_->auth && opt_->auth->requestRequiresAuthentication(*req)) {
+        if ( ! opt_->auth->requestPassesAuthentication(*req)) {
+            opt_->auth->generateFailedAuthenticationResponse(*req, &resp);
+            return resp.ToString();
         }
-    }
-    if ( ! auth) {
-        resp.SetStatus(Response::code_401_unauthorized);
-        resp.AddHeader("WWW-Authenticate", "Basic realm=\"MyServerRealm\"");
-        return resp.ToString();
     }
 
     RequestHandler* handler = matchRequestWithHandler(*req);

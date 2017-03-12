@@ -2,6 +2,7 @@
 
 #include "options.h"
 #include "webserver.h"
+#include "authenticate.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -21,6 +22,10 @@ int main(int argc, char* argv[]) {
     for (auto& hand : opt.handlerMap) {
         std::cout << "    [" << hand.first << "]: " << hand.second << std::endl;
     }
+
+    Authentication* auth = new Authentication();
+    auth->addRealm("/echo", new AuthenticationRealm({{"evan", "pass"}, {"admin", "password"}}));
+    opt.auth = auth;
 
     Webserver ws(&opt);
     ws.run();
