@@ -22,7 +22,7 @@ TEST(FileLoaderTest, readsJPEGFile) {
     FileLoader fileloader;
 
     BinaryData data;
-    FileLoaderError err = fileloader.openFile("testFiles1/some folder/dog.jpg", &data);
+    FileLoaderError err = fileloader.openFile("testFiles1/dog.jpg", &data);
 
     ASSERT_EQ(err, FileErr_None);
 

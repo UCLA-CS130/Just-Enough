@@ -215,3 +215,96 @@ TEST_F(StaticHandlerTester, handleRequestImageType) {
     EXPECT_THAT(respStr, HasSubstr("200 OK"));
     EXPECT_THAT(respStr, HasSubstr("Content-Type: image/gif"));
 }
+
+
+TEST_F(StaticHandlerTester, handleMarkdownRequestNonconvert) {
+    auto handler = makeTestStaticHandler("/static");
+
+    std::string reqStr = (
+            "GET /static/markdown/test.md HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "\r\n"
+            );
+
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    ASSERT_NE(req, nullptr);
+
+    Response resp;
+    ASSERT_EQ(handler->HandleRequest(*req, &resp), RequestHandler::OK);
+
+    string respStr = resp.ToString();
+    EXPECT_THAT(respStr, HasSubstr("200 OK"));
+    EXPECT_THAT(respStr, HasSubstr("Content-Type: text/plain"));
+    EXPECT_THAT(respStr, HasSubstr("# Markdown Test"));
+    EXPECT_THAT(respStr, HasSubstr("**"));
+    EXPECT_THAT(respStr, HasSubstr("`"));
+}
+
+
+class StaticHandlerMarkdownTester : public ::testing::Test {
+    protected:
+        virtual std::unique_ptr<RequestHandler> makeTestStaticHandler(std::string uri_prefix) {
+            NginxConfig config;
+            std::shared_ptr<NginxConfigStatement> stmt1(new NginxConfigStatement());
+            stmt1->tokens_.push_back ("root");
+            stmt1->tokens_.push_back ("testFiles1");
+            std::shared_ptr<NginxConfigStatement> stmt2(new NginxConfigStatement());
+            stmt2->tokens_.push_back ("convert_markdown");
+            stmt2->tokens_.push_back ("true");
+
+            std::unique_ptr<RequestHandler> handler(new StaticHandler());
+            config.statements_.push_back (stmt1);
+            config.statements_.push_back (stmt2);
+            handler->Init(uri_prefix, config);
+            return handler;
+        }
+};
+
+TEST_F(StaticHandlerMarkdownTester, handleMarkdownRequest) {
+    auto handler = makeTestStaticHandler("/static");
+
+    std::string reqStr = (
+            "GET /static/markdown/test.md HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "\r\n"
+            );
+
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    ASSERT_NE(req, nullptr);
+
+    Response resp;
+    ASSERT_EQ(handler->HandleRequest(*req, &resp), RequestHandler::OK);
+
+    string respStr = resp.ToString();
+    EXPECT_THAT(respStr, HasSubstr("200 OK"));
+    EXPECT_THAT(respStr, HasSubstr("Content-Type: text/html"));
+    EXPECT_THAT(respStr, HasSubstr("<h1>Markdown Test</h1>"));
+    EXPECT_THAT(respStr, HasSubstr("<em>"));
+    EXPECT_THAT(respStr, HasSubstr("<strong>"));
+    EXPECT_THAT(respStr, HasSubstr("<code>"));
+}
+
+TEST_F(StaticHandlerMarkdownTester, handleNonMarkdownFile) {
+    auto handler = makeTestStaticHandler("/static");
+
+    std::string reqStr = (
+            "GET /static/markdown/test.md HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "\r\n"
+            );
+
+    std::unique_ptr<Request> req = Request::Parse(reqStr);
+    ASSERT_NE(req, nullptr);
+
+    Response resp;
+    ASSERT_EQ(handler->HandleRequest(*req, &resp), RequestHandler::OK);
+
+    string respStr = resp.ToString();
+    EXPECT_THAT(respStr, HasSubstr("200 OK"));
+    EXPECT_THAT(respStr, HasSubstr("Content-Type: text/html"));
+    EXPECT_THAT(respStr, HasSubstr("<h1>Markdown Test</h1>"));
+    EXPECT_THAT(respStr, HasSubstr("<em>"));
+    EXPECT_THAT(respStr, HasSubstr("<strong>"));
+    EXPECT_THAT(respStr, HasSubstr("<code>"));
+}
+
