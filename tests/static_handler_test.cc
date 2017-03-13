@@ -27,6 +27,97 @@ TEST(StaticHandlerTest, createStaticHandler) {
     EXPECT_EQ(status, RequestHandler::OK);
 }
 
+class StaticHandlerTest : public StaticHandler {
+    public:
+        std::string filebase() { return filebase_; }
+        bool convert_markdown() { return convert_markdown_; }
+};
+
+TEST(StaticHandlerTest, markdownHandlerInit) {
+    std::unique_ptr<StaticHandlerTest> handler(new StaticHandlerTest());
+    ASSERT_NE(handler, nullptr);
+
+    NginxConfig config;
+    std::shared_ptr<NginxConfigStatement> stmt1(new NginxConfigStatement());
+    stmt1->tokens_.push_back ("root");
+    stmt1->tokens_.push_back ("testFiles1");
+    std::shared_ptr<NginxConfigStatement> stmt2(new NginxConfigStatement());
+    stmt2->tokens_.push_back ("convert_markdown");
+    stmt2->tokens_.push_back ("true");
+
+    config.statements_.push_back (stmt1);
+    config.statements_.push_back (stmt2);
+
+    RequestHandler::Status status = handler->Init("/foo", config);
+    ASSERT_EQ(status, RequestHandler::OK);
+
+    EXPECT_EQ(handler->convert_markdown(), true);
+}
+
+TEST(StaticHandlerTest, markdownHandlerInitFailInvalid) {
+    std::unique_ptr<StaticHandlerTest> handler(new StaticHandlerTest());
+    ASSERT_NE(handler, nullptr);
+
+    NginxConfig config;
+    std::shared_ptr<NginxConfigStatement> stmt1(new NginxConfigStatement());
+    stmt1->tokens_.push_back ("root");
+    stmt1->tokens_.push_back ("testFiles1");
+    std::shared_ptr<NginxConfigStatement> stmt2(new NginxConfigStatement());
+    stmt2->tokens_.push_back ("convert_markdown");
+
+    config.statements_.push_back (stmt1);
+    config.statements_.push_back (stmt2);
+
+    RequestHandler::Status status = handler->Init("/foo", config);
+    ASSERT_EQ(status, RequestHandler::Error);
+
+    EXPECT_EQ(handler->convert_markdown(), false);
+}
+
+TEST(StaticHandlerTest, markdownHandlerInitFailMultiDef) {
+    std::unique_ptr<RequestHandler> handler(new StaticHandler());
+    ASSERT_NE(handler, nullptr);
+
+    NginxConfig config;
+    std::shared_ptr<NginxConfigStatement> stmt1(new NginxConfigStatement());
+    stmt1->tokens_.push_back ("root");
+    stmt1->tokens_.push_back ("testFiles1");
+    std::shared_ptr<NginxConfigStatement> stmt2(new NginxConfigStatement());
+    stmt2->tokens_.push_back ("convert_markdown");
+    stmt2->tokens_.push_back ("true");
+    std::shared_ptr<NginxConfigStatement> stmt3(new NginxConfigStatement());
+    stmt3->tokens_.push_back ("convert_markdown");
+    stmt3->tokens_.push_back ("false");
+
+    config.statements_.push_back (stmt1);
+    config.statements_.push_back (stmt2);
+    config.statements_.push_back (stmt3);
+
+    RequestHandler::Status status = handler->Init("/foo", config);
+    ASSERT_EQ(status, RequestHandler::Error);
+}
+
+TEST(StaticHandlerTest, markdownHandlerInitFalse) {
+    std::unique_ptr<StaticHandlerTest> handler(new StaticHandlerTest());
+    ASSERT_NE(handler, nullptr);
+
+    NginxConfig config;
+    std::shared_ptr<NginxConfigStatement> stmt1(new NginxConfigStatement());
+    stmt1->tokens_.push_back ("root");
+    stmt1->tokens_.push_back ("testFiles1");
+    std::shared_ptr<NginxConfigStatement> stmt2(new NginxConfigStatement());
+    stmt2->tokens_.push_back ("convert_markdown");
+    stmt2->tokens_.push_back ("false");
+
+    config.statements_.push_back (stmt1);
+    config.statements_.push_back (stmt2);
+
+    RequestHandler::Status status = handler->Init("/foo", config);
+    ASSERT_EQ(status, RequestHandler::OK);
+
+    EXPECT_EQ(handler->convert_markdown(), false);
+}
+
 class StaticHandlerTester : public ::testing::Test {
     protected:
         virtual std::unique_ptr<RequestHandler> makeTestStaticHandler(std::string uri_prefix) {
