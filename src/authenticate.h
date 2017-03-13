@@ -6,11 +6,13 @@
 
 class Authentication {
     public:
-    bool requestRequiresAuthentication(const Request& req);
-    bool requestPassesAuthentication(const Request& req);
-    void generateFailedAuthenticationResponse(const Request& req, Response* resp);
+    virtual bool requestRequiresAuthentication(const Request& req);
+    virtual bool requestPassesAuthentication(const Request& req);
+    virtual void generateFailedAuthenticationResponse(const Request& req, Response* resp);
 
     void addRealm(AuthenticationRealm* r);
+
+    virtual ~Authentication() = default;
 
     private:
     std::map<std::string, std::unique_ptr<AuthenticationRealm>> realms_;

@@ -206,4 +206,7 @@ Options::~Options() {
     for (auto& h: handlerMap) {
         delete h.second;
     }
+    if (auth) {
+        delete auth;
+    }
 }
