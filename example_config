@@ -8,11 +8,11 @@ path /static StaticHandler {
 }
 
 path /static1 StaticHandler {
-	root testFiles1/markdown/Readme.md;
+	root testFiles1/markdown;
 }
 
 path /static2 StaticHandler {
-	root testFiles1/markdown/Readme.md;
+	root testFiles1/markdown;
 	convert_markdown true;
 }
 

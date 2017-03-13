@@ -83,7 +83,7 @@ RequestHandler::Status StaticHandler::HandleRequest(const Request& req, Response
 
             resp->SetStatus(Response::code_200_OK);
 
-            if (convert_markdown_) {
+            if ((mt == MIMEType_md) && convert_markdown_) {
                 string converted_md = convertMarkdownToHtml(data);
                 if (converted_md == "") {
                     // Something went wrong in converting the markdown.
@@ -101,7 +101,7 @@ RequestHandler::Status StaticHandler::HandleRequest(const Request& req, Response
     }
 
     resp->SetStatus(Response::code_500_internal_error);
-    return RequestHandler::Error;
+    return RequestHandler::OK;
 }
 
 
