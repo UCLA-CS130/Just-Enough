@@ -103,13 +103,15 @@ deploy:
 	@cd deployment && mkdir -p src
 	@cd ..
 	@cp -R src deployment/src
-	@cp example_config deployment
+	@cp production_config deployment
+	@cp -R testFiles1 deployment
+	@cp -R testFiles2 deployment
 	@cp Dockerfile_shrink deployment/Dockerfile
 	@tar -xf binary.tar -C deployment/
 	@docker build -t webserver deployment
 	@docker ps -aq --filter "ancestor=webserver.build" | xargs docker rm # remove un-shrunk container
 	@docker images -q webserver.build | xargs docker rmi # remove un-shrunk image
-	@# Note: run shrunk docker container with: docker run --rm -t -p 8080:8080 webserver
+	@ Note: run shrunk docker container with: docker run --rm -t -p 8080:8080 webserver
 
 EC2_PUBLIC_IP = 54.202.52.105
 EC2_PEM = ../my-ec2-key-pair.pem
@@ -137,6 +139,8 @@ clean:
 	@-rm -rf deployment
 	@-rm -f $(MARKDOWN)/*.o
 	@-rm -f *.tar
+
+clean-docker: clean
 ifdef HAS_DOCKER
 	@docker ps -q --filter "ancestor=webserver" | xargs docker kill # kill running instances
 	@docker ps -aq --filter "ancestor=webserver.build" | xargs docker rm # remove container

@@ -9,8 +9,12 @@ path /fancy StaticHandler {
 }
 
 # by default, all paths are public
-path / StaticHandler {
+path /static StaticHandler {
     root testFiles1;
+}
+path / ProxyHandler {
+    remote_host ucla.edu;
+    remote_port 80;
 }
 path /echo EchoHandler {}
 

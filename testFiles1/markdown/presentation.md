@@ -11,10 +11,14 @@
  In our config:
 
     # by default, all paths are public
-    path / StaticHandler {
+    path /static StaticHandler {
         root testFiles1;
     }
     path /echo EchoHandler {}
+    path / ProxyHandler {
+        remote_host ucla.edu;
+        remote_port 80;
+    }
     
     # password protected areas:
     path /secret/files StaticHandler {
@@ -29,7 +33,7 @@
         credentials user2 p@ssw0rd;
     }
 
-Anyone can access [/cat.gif](/cat.gif), etc.
+Anyone can access [/static/cat.gif](/static/cat.gif), etc.
 
 However, if you try to access [/secret/files/private.txt](/secret/files/private.txt),
 you will have to enter a username and password.
