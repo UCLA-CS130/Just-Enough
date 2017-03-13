@@ -19,8 +19,11 @@ const int HANDLER = 2;
 const int DEFAULT_HANDLER = 1;
 
 const int STATEMENT_SIZE = 2;
-const int PATH_SIZE = 3;
 const int DEFAULT_PATH_SIZE = 2;
+const int PATH_SIZE = 3;
+
+const int REALM_SIZE = 2;
+const int REALM_CRED_SIZE = 3;
 
 // pass empty path to act as catch-all/default handler
 bool Options::addHandler(string type, string path, const NginxConfig& handler_config) {
@@ -44,7 +47,7 @@ bool Options::addHandler(string type, string path, const NginxConfig& handler_co
 }
 
 bool Options::addPath(std::shared_ptr<NginxConfigStatement> handler_config) {
-    if (handler_config->tokens_.size() != 3) {
+    if (handler_config->tokens_.size() != PATH_SIZE) {
         std::cerr << "Not a valid path statement. Need " << PATH_SIZE << " tokens.\n";
         return false;
     }
@@ -67,6 +70,27 @@ bool Options::addDefaultHandler(std::shared_ptr<NginxConfigStatement> handler_co
     return addHandler(type, path, *handler_config->child_block_);
 }
 
+bool Options::addAuthenticationRealm(std::shared_ptr<NginxConfigStatement> auth_config) {
+    if (auth_config->tokens_.size() != REALM_SIZE) {
+        std::cerr << "A path has not been specified for the realm.\n";
+        return false;
+    }
+    std::map<std::string, std::string> AuthMap;
+    for (auto& statements : auth_config->child_block_->statements_) {
+        if (statements->tokens_.size() != REALM_CRED_SIZE) {
+            std::cerr << "Not a valid credential statement. Need " << 
+                REALM_CRED_SIZE << " tokens.\n";
+            return false;
+        }
+        if(statements->tokens_[0] == "credentials") {
+            std::string username = statements->tokens_[1];
+            std::string pass = statements->tokens_[2];
+            AuthMap[username] = pass;
+        }
+    }
+    auth->addRealm(new AuthenticationRealm(auth_config->tokens_[VAL], AuthMap));
+    return true;
+}
 
 bool Options::addPort(std::shared_ptr<NginxConfigStatement> port_config) {
     if (port_config->tokens_.size() != STATEMENT_SIZE) {
@@ -106,6 +130,7 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
         return false;
     }
 
+    auth = new Authentication();
     defaultHandler = nullptr;
     bool issetPort = false;
     bool issetThread = false;
@@ -123,10 +148,7 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
                     return false;
                 }
             }
-        } 
-
-        // Sets threads.
-        else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "threads") {
+        } else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "threads") {
             if (issetThread) {
                 std::cerr << "Multiple threads in config file.\n";
                 return false;
@@ -136,26 +158,22 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
                     return false;
                 }
             }
-        }
-
-        // Sets handler.
-        else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "path") { 
+        } else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "path") { 
             if (addPath(temp_config) == false) {
                 std::cerr << "Failed to add handler.\n";
                 return false;
             }
-        }
-
-        // Sets default handler.
-        else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "default") {
+        } else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "default") {
             if (addDefaultHandler(temp_config) == false) {
                 std::cerr << "Failed to add default handler.\n";
                 return false;
             }
-        }
-
-        // For future statements in config file.
-        else {
+        } else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "realm") {
+            if (addAuthenticationRealm(temp_config) == false) {
+                std::cerr << "Failed to add authentication.\n";
+                return false;
+            }
+        } else {
             std::cerr << "Unknown specifier " << temp_config->tokens_[KEY] << " .\n";
             return false;
         }
@@ -195,9 +213,18 @@ bool Options::loadOptionsFromFile(const char* filename) {
     return val;
 }
 
+Options::Options() {
+    port = 0;
+    thread = DEFAULT_NUM_THREADS;
+    auth = nullptr;
+    defaultHandler = nullptr;
+}
 Options::~Options() {
     // free allocated handlers
     for (auto& h: handlerMap) {
         delete h.second;
+    }
+    if (auth) {
+        delete auth;
     }
 }

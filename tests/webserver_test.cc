@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "echo_handler.h"
+#include "request_handler.h"
 #include "options.h"
 #include "webserver.h"
 #include <sstream>
@@ -12,6 +13,8 @@ using ::testing::StrEq;
 using ::testing::MatchesRegex;
 using ::testing::DoAll;
 using ::testing::InvokeWithoutArgs;
+using ::testing::Invoke;
+using ::testing::WithArgs;
 using boost::asio::ip::tcp;
 
 class MockWebserverRun : public Webserver {
@@ -76,6 +79,118 @@ TEST(WebserverTest, processRawRequest) {
 
     // For now, we're expecting it to echo the request
     EXPECT_THAT(resp, HasSubstr(req));
+}
+
+class MockAuth : public Authentication {
+    public:
+        MOCK_METHOD1(requestRequiresAuthentication, bool(const Request&));
+        MOCK_METHOD1(requestPassesAuthentication, bool(const Request&));
+        MOCK_METHOD2(generateFailedAuthenticationResponse, void(const Request&, Response*));
+};
+
+TEST(WebserverTest, processRawRequest_authNotRequired) {
+    Options opts;
+    opts.port = 8080;
+    MockAuth* auth = new MockAuth();
+    opts.auth = auth;
+
+    RequestHandler* handler = new EchoHandler();
+    std::string uri = "/secret";
+    NginxConfig config;
+    handler->Init(uri, config);
+    opts.handlerMap[uri] = handler;
+
+    Webserver ws(&opts);
+
+    std::string req1 = (
+            "GET /secret HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "Host: localhost:8080\r\n"
+            "\r\n"
+            );
+
+    EXPECT_CALL(*auth, requestRequiresAuthentication(_))
+        .WillOnce(Return(false));
+
+    std::string resp = ws.processRawRequest(req1);
+
+    EXPECT_THAT(resp, HasSubstr("HTTP/1.1 200 OK\r\n"));
+    EXPECT_THAT(resp, HasSubstr("Content-Type: text/plain\r\n"));
+}
+
+TEST(WebserverTest, processRawRequest_badAuth) {
+    Options opts;
+    opts.port = 8080;
+    MockAuth* auth = new MockAuth();
+    opts.auth = auth;
+
+    RequestHandler* handler = new EchoHandler();
+    std::string uri = "/secret";
+    NginxConfig config;
+    handler->Init(uri, config);
+    opts.handlerMap[uri] = handler;
+
+    Webserver ws(&opts);
+
+    std::string req1 = (
+            "GET /secret HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "Host: localhost:8080\r\n"
+            "\r\n"
+            );
+
+    EXPECT_CALL(*auth, requestRequiresAuthentication(_))
+        .WillOnce(Return(true));
+
+    EXPECT_CALL(*auth, requestPassesAuthentication(_))
+        .WillOnce(Return(false));
+
+    EXPECT_CALL(*auth, generateFailedAuthenticationResponse(_, _))
+        .WillOnce(Invoke([](const Request&, Response* resp) {
+                    std::cout << "doing the thing!!!!" << std::endl;
+                    resp->SetStatus(Response::code_401_unauthorized);
+                    resp->AddHeader("WWW-Authenticate", "Basic realm=\"/secret\"");
+                    })
+                );
+
+    std::string resp = ws.processRawRequest(req1);
+
+    EXPECT_THAT(resp, HasSubstr("HTTP/1.1 401 Unauthorized\r\n"));
+    EXPECT_THAT(resp, HasSubstr("WWW-Authenticate: Basic realm=\"/secret\""));
+}
+
+TEST(WebserverTest, processRawRequest_goodAuth) {
+    Options opts;
+    opts.port = 8080;
+    MockAuth* auth = new MockAuth();
+    opts.auth = auth;
+
+    RequestHandler* handler = new EchoHandler();
+    std::string uri = "/secret";
+    NginxConfig config;
+    handler->Init(uri, config);
+    opts.handlerMap[uri] = handler;
+
+    Webserver ws(&opts);
+
+    std::string req1 = (
+            "GET /secret HTTP/1.1\r\n"
+            "User-Agent: Mozilla/1.0\r\n"
+            "Host: localhost:8080\r\n"
+            "Authorization: Basic dXNlcjpwYXNz\r\n"
+            "\r\n"
+            );
+
+    EXPECT_CALL(*auth, requestRequiresAuthentication(_))
+        .WillOnce(Return(true));
+
+    EXPECT_CALL(*auth, requestPassesAuthentication(_))
+        .WillOnce(Return(true));
+
+    std::string resp = ws.processRawRequest(req1);
+
+    EXPECT_THAT(resp, HasSubstr("HTTP/1.1 200 OK\r\n"));
+    EXPECT_THAT(resp, HasSubstr("Content-Type: text/plain\r\n"));
 }
 
 TEST(WebserverTest, startThreads) {

@@ -25,3 +25,21 @@ inline std::string getCRLFLine(std::stringstream& ss) {
     }
     return "";
 }
+
+// does m have a key k that starts with s?
+template <typename T>
+T* mapHasPrefix(std::map<std::string, T>& m, const std::string& s) {
+    std::string prefix = s;
+    if (m.size() == 0) {
+        return nullptr;
+    }
+    for (int prefixSize = prefix.size(); prefixSize > 0; prefixSize--) {
+        prefix.resize(prefixSize);
+
+        auto match = m.find(prefix);
+        if (match != m.end()) {
+            return &match->second;
+        }
+    }
+    return nullptr;
+}

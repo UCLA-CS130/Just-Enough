@@ -40,4 +40,14 @@ path / ProxyHandler {
 	remote_port 80;
 }
 
+realm /static/secret {
+    credentials admin password;
+    credentials evan 12345;
+}
+
+realm /static/secret {
+    credentials admin password;
+    credentials evan 12345;
+}
+
 default NotFoundHandler {}

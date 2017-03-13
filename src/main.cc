@@ -2,6 +2,7 @@
 
 #include "options.h"
 #include "webserver.h"
+#include "authenticate.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
