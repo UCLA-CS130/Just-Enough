@@ -103,7 +103,9 @@ deploy:
 	@cd deployment && mkdir -p src
 	@cd ..
 	@cp -R src deployment/src
-	@cp example_config deployment
+	@cp production_config deployment
+	@cp -R testFiles1 deployment
+	@cp -R testFiles2 deployment
 	@cp Dockerfile_shrink deployment/Dockerfile
 	@tar -xf binary.tar -C deployment/
 	@docker build -t webserver deployment
@@ -137,6 +139,8 @@ clean:
 	@-rm -rf deployment
 	@-rm -f $(MARKDOWN)/*.o
 	@-rm -f *.tar
+
+clean-docker: clean
 ifdef HAS_DOCKER
 	@docker ps -q --filter "ancestor=webserver" | xargs docker kill # kill running instances
 	@docker ps -aq --filter "ancestor=webserver.build" | xargs docker rm # remove container

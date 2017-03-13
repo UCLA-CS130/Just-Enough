@@ -9,6 +9,7 @@ size_t STATEMENT_SIZE = 2;
 
 RequestHandler::Status StaticHandler::Init(const std::string& uri_prefix, const NginxConfig& config) {
     path_ = uri_prefix;
+    convert_markdown_ = false;
     bool issetMarkdown = false;
     for (size_t i = 0; i < config.statements_.size(); i++) {
         if (config.statements_[i]->tokens_.size() == STATEMENT_SIZE) {

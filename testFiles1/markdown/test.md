@@ -16,7 +16,7 @@ This is a nice little paragraph with lots of text in it.
 
 ### Subsubheading 2
 
-*styles* **are** ~~supported~~ `correctly`
+*styles* **are** supported `correctly`
 
 ```
 This is a code block
