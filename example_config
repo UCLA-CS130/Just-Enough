@@ -7,28 +7,37 @@ path /static StaticHandler {
 	root testFiles1;
 }
 
+path /static1 StaticHandler {
+	root testFiles1/markdown;
+}
+
+path /static2 StaticHandler {
+	root testFiles1/markdown;
+	convert_markdown true;
+}
+
 path /echo EchoHandler {}
 
 path /status StatusHandler {}
 
 path /proxy1 ProxyHandler {
-  remote_host google.com;
-  remote_port 80;
+	remote_host google.com;
+	remote_port 80;
 }
 
 path /proxy2 ProxyHandler {
-  remote_host ucla.edu;
-  remote_port 80;
+	remote_host ucla.edu;
+	remote_port 80;
 }
 
 path /proxy3 ProxyHandler {
-  remote_host ipecho.net;
-  remote_port 80;
+	remote_host ipecho.net;
+	remote_port 80;
 }
 
 path / ProxyHandler {
-  remote_host ucla.edu;
-  remote_port 80;
+	remote_host ucla.edu;
+	remote_port 80;
 }
 
 default NotFoundHandler {}

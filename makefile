@@ -5,13 +5,20 @@ CFLAGS += $(EXTRA_FLAGS)
 
 LDFLAGS =
 ifeq ($(UNAME), Linux)
-	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -static-libgcc -static-libstdc++ -lpthread -Wl,-Bstatic -lboost_system -lboost_filesystem
+	LDFLAGS += -L/usr/lib/x86_64-linux-gnu -static-libgcc -static-libstdc++
+	LDFLAGS += -lpthread -Wl,-Bstatic -lboost_system -lboost_filesystem
+	LDFLAGS += -lboost_regex
 endif
 ifeq ($(UNAME), Darwin) # macOS
 	LDFLAGS += -L/usr/local/include -lboost_system -lboost_filesystem
+	LDFLAGS += -lboost_regex
 endif
 
-DEBUG_FLAGS = -g -Wall -Wextra -Werror
+MARKDOWN = cpp-markdown-100
+CFLAGS += -I$(MARKDOWN)
+
+WARNINGS = -Wall -Wextra -Werror
+DEBUG_FLAGS = -g
 
 COV_DIR = coverage
 COVCC = gcov
@@ -24,6 +31,7 @@ TEST_FILES = $(wildcard tests/*.cc)
 OBJ_DIR = build
 OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(CC_FILES:.cc=.o)))
 TEST_OBJ_FILES = $(addprefix $(OBJ_DIR)/,$(notdir $(TEST_FILES:.cc=.o)))
+MARKDOWN_OBJ = $(MARKDOWN)/markdown.o $(MARKDOWN)/markdown-tokens.o
 
 GTEST_DIR = googletest/googletest
 GMOCK_DIR = googletest/googlemock
@@ -31,9 +39,11 @@ TEST_FLAGS = $(DEBUG_FLAGS) -isystem $(GTEST_DIR)/include -isystem $(GMOCK_DIR)/
 
 HAS_DOCKER := $(shell command -v docker 2> /dev/null)
 
-all: $(OBJ_FILES)
+.PHONY: clean
+
+all: $(OBJ_FILES) $(MARKDOWN_OBJ)
 	@echo "$(C)Linking $(CLR)"
-	@$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(MAIN) $^ -o webserver $(LDFLAGS)
+	@$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(WARNINGS) $(MAIN) $^ -o webserver $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: src/%.cc
 	@mkdir -p $(OBJ_DIR)
@@ -54,11 +64,15 @@ $(OBJ_DIR)/gmock-all.o: $(GMOCK_DIR)/src/gmock-all.cc
 	@echo "$(C)Compiling libgmock$(CLR)"
 	@$(CC) $(CFLAGS) $(TEST_FLAGS) -I$(GMOCK_DIR) -I$(GTEST_DIR) -c $^ -o $@
 
-test: $(OBJ_FILES) $(OBJ_DIR)/gtest-all.o $(OBJ_DIR)/gmock-all.o $(TEST_OBJ_FILES)
+test: $(MARKDOWN_OBJ) $(OBJ_FILES) $(OBJ_DIR)/gtest-all.o $(OBJ_DIR)/gmock-all.o $(TEST_OBJ_FILES)
 	@echo "$(C)Linking tests$(CLR)"
 	@$(CC) $(CFLAGS) $(TEST_FLAGS) -Isrc/ $^ $(GTEST_DIR)/src/gtest_main.cc -o $(OBJ_DIR)/run_tests $(LDFLAGS)
 	@echo "$(C)Running tests$(CLR)"
 	@$(OBJ_DIR)/run_tests
+
+$(MARKDOWN)/%.o: $(MARKDOWN)/%.cpp
+	@echo "$(C)Compiling Markdown Source: $(CLR) $<"
+	@$(CC) $(CFLAGS) $(DEBUG_FLAGS) -c $< -o $@
 
 integration:
 	tests/integration.py
@@ -71,7 +85,14 @@ coverage: clean
 	@mv *.gcov $(COV_DIR)/
 	@exec make -s clean
 
-test-all: test integration
+test-all:
+	$(MAKE) test
+	$(MAKE) integration
+
+test-all-clean:
+	$(MAKE) clean
+	$(MAKE) test
+	$(MAKE) integration
 
 deploy:
 	@docker ps -q | xargs -L1 docker kill || true # kill running instances
@@ -114,6 +135,7 @@ clean:
 	@-rm -f webserver
 	@-rm -f run_tests
 	@-rm -rf deployment
+	@-rm -f $(MARKDOWN)/*.o
 	@-rm -f *.tar
 ifdef HAS_DOCKER
 	@docker ps -q --filter "ancestor=webserver" | xargs docker kill # kill running instances

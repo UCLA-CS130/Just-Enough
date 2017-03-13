@@ -24,6 +24,8 @@ enum MIMEType {
     MIMEType_gif,
     MIMEType_jpeg,
 
+    MIMEType_md,
+
     MIMEType_unknown,
 };
 

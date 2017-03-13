@@ -13,6 +13,8 @@ const std::map<MIMEType, string> MIMETypeMap = {
     {MIMEType_gif, "image/gif"},
     {MIMEType_jpeg, "image/jpeg"},
 
+    {MIMEType_md, "text/plain"},
+
     {MIMEType_text, "text/plain"},
     {MIMEType_unknown, "text/plain"},
 };
@@ -28,6 +30,8 @@ const std::map<string, MIMEType> fileExtensionTypeMap = {
 
     {"css", MIMEType_css},
     {"js", MIMEType_js},
+
+    {"md", MIMEType_md},
 
     {"txt", MIMEType_text},
 };

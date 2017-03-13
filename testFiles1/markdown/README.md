@@ -8,6 +8,7 @@
 
 ## Building/Installing
 To clone: `git clone https://github.com/UCLA-CS130/Just-Enough.git` as usual
+First run `make dependencies` to install submodules and build their libraries
 
 * `make` will build the webserver executable
 * `make test` will run unit tests
