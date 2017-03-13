@@ -32,6 +32,9 @@ std::string Webserver::processRawRequest(std::string& reqStr) {
     if (opt_->auth && opt_->auth->requestRequiresAuthentication(*req)) {
         if ( ! opt_->auth->requestPassesAuthentication(*req)) {
             opt_->auth->generateFailedAuthenticationResponse(*req, &resp);
+
+            counters_.increment(req->uri(), resp.status());
+
             std::cout << "challenging authentication\n";
             return resp.ToString();
         }
