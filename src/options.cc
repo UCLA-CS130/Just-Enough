@@ -70,13 +70,11 @@ bool Options::addDefaultHandler(std::shared_ptr<NginxConfigStatement> handler_co
     return addHandler(type, path, *handler_config->child_block_);
 }
 
-bool Options::addAuthentication(std::shared_ptr<NginxConfigStatement> auth_config) {
+bool Options::addAuthenticationRealm(std::shared_ptr<NginxConfigStatement> auth_config) {
     if (auth_config->tokens_.size() != REALM_SIZE) {
         std::cerr << "A path has not been specified for the realm.\n";
         return false;
     }
-
-    auth = new Authentication();
     std::map<std::string, std::string> AuthMap;
     for (auto& statements : auth_config->child_block_->statements_) {
         if (statements->tokens_.size() != REALM_CRED_SIZE) {
@@ -84,7 +82,7 @@ bool Options::addAuthentication(std::shared_ptr<NginxConfigStatement> auth_confi
                 REALM_CRED_SIZE << " tokens.\n";
             return false;
         }
-        if(statements->tokens_[0] == "credential") {
+        if(statements->tokens_[0] == "credentials") {
             std::string username = statements->tokens_[1];
             std::string pass = statements->tokens_[2];
             AuthMap[username] = pass;
@@ -132,6 +130,7 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
         return false;
     }
 
+    auth = new Authentication();
     defaultHandler = nullptr;
     bool issetPort = false;
     bool issetThread = false;
@@ -170,7 +169,7 @@ bool Options::loadOptionsFromStream(std::istream* config_file) {
                 return false;
             }
         } else if (temp_config->tokens_.size() > 1 && temp_config->tokens_[KEY] == "realm") {
-            if (addAuthentication(temp_config) == false) {
+            if (addAuthenticationRealm(temp_config) == false) {
                 std::cerr << "Failed to add authentication.\n";
                 return false;
             }

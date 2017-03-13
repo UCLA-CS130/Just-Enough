@@ -15,7 +15,7 @@ struct Options {
     bool addHandler(std::string type, std::string path, const NginxConfig& handler_config);
     bool addPath(std::shared_ptr<NginxConfigStatement> handler_config);
     bool addDefaultHandler(std::shared_ptr<NginxConfigStatement> handler_config);
-    bool addAuthentication(std::shared_ptr<NginxConfigStatement> auth_config);
+    bool addAuthenticationRealm(std::shared_ptr<NginxConfigStatement> auth_config);
     bool addPort(std::shared_ptr<NginxConfigStatement> port_config);
     bool addThread(std::shared_ptr<NginxConfigStatement> thread_config);
     bool loadOptionsFromStream(std::istream* config_file);
