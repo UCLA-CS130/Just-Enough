@@ -23,10 +23,6 @@ int main(int argc, char* argv[]) {
         std::cout << "    [" << hand.first << "]: " << hand.second << std::endl;
     }
 
-    Authentication* auth = new Authentication();
-    auth->addRealm(new AuthenticationRealm("/echo/secret", {{"evan", "pass"}, {"admin", "password"}}));
-    opt.auth = auth;
-
     Webserver ws(&opt);
     ws.run();
 
