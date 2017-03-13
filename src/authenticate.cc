@@ -49,9 +49,9 @@ bool Authentication::requestPassesAuthentication(const Request& req) {
 void Authentication::generateFailedAuthenticationResponse(const Request& req, Response* resp) {
     resp->SetStatus(Response::code_401_unauthorized);
     resp->AddHeader("Content-Type", "text/html");
-    auto found = realms_.find(req.uri());
-    if (found != realms_.end() && found->second) {
-        resp->AddHeader("WWW-Authenticate", "Basic realm=\"" + found->second->realm() + "\"");
+    auto found = mapHasPrefix(realms_, req.uri());
+    if (found) {
+        resp->AddHeader("WWW-Authenticate", "Basic realm=\"" + (*found)->realm() + "\"");
     }
     resp->SetBody("<html><body><h1>401 Unauthorized</h1><p>Invalid credentials</p></body></html>");
 }
