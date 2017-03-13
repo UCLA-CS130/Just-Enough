@@ -111,7 +111,7 @@ deploy:
 	@docker build -t webserver deployment
 	@docker ps -aq --filter "ancestor=webserver.build" | xargs docker rm # remove un-shrunk container
 	@docker images -q webserver.build | xargs docker rmi # remove un-shrunk image
-	@ Note: run shrunk docker container with: docker run --rm -t -p 8080:8080 webserver
+	@# Note: run shrunk docker container with: docker run --rm -t -p 8080:8080 webserver
 
 EC2_PUBLIC_IP = 54.202.52.105
 EC2_PEM = ../my-ec2-key-pair.pem
