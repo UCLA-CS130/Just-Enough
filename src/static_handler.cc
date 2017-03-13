@@ -46,6 +46,7 @@ RequestHandler::Status StaticHandler::HandleRequest(const Request& req, Response
     // TODO: sanitize path: filter out %20, make sure '..' won't go up a directory
 
     string reqPath = req.uri().substr(path_.size());
+    if (reqPath[0] != '/') reqPath = "/" + reqPath;
     string filepath;
     if (filebase_[filebase_.size()-1] == '/') {
         filepath = filebase_ + reqPath.substr(1);
