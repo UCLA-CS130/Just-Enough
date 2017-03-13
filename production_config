@@ -1,0 +1,28 @@
+port 8080;
+
+path /boring StaticHandler {
+    root testFiles1/markdown;
+}
+path /fancy StaticHandler {
+    root testFiles1/markdown;
+    convert_markdown true;
+}
+
+# by default, all paths are public
+path / StaticHandler {
+    root testFiles1;
+}
+path /echo EchoHandler {}
+
+# password protected areas:
+path /secret/files StaticHandler {
+    root testFiles2;
+}
+path /secret/status StatusHandler {}
+path /secret/echo EchoHandler {}
+
+# define secret "realm" with users
+realm /secret {
+    credentials cs130 password;
+    credentials user2 p@ssw0rd;
+}
